@@ -34,6 +34,7 @@ Sign up new user and give him access and refresh tokens.
 
 ```json
 {
+  "username": "john_doe",
   "email": "john@gmail.com",
   "password": "fsh#fD23{-"
 }
@@ -45,6 +46,7 @@ Sign up new user and give him access and refresh tokens.
 
 | Field    | Rules |
 |----------|------|
+| username | required, 3–50 chars, unique, letters, digits, and underscore only |
 | email    | required, valid format, max 255 chars, unique |
 | password  | required, 8–64 chars, strong password required |
 
@@ -63,7 +65,7 @@ Sign up new user and give him access and refresh tokens.
 | Status | Description |
 |---------|-------------|
 | 400 | Validation error |
-| 409 | User already exists |
+| 409 | Username or email already exists |
 | 500 | Internal server error |
 
 ---
@@ -77,7 +79,7 @@ POST /auth/login
 
 ### Description
 
-Authenticate an existing user and return access and refresh tokens.
+Authenticate an existing user by **username and password** and return access and refresh tokens.
 
 
 
@@ -85,8 +87,8 @@ Authenticate an existing user and return access and refresh tokens.
 
 ```json
 {
-  "email": "john@gmail.com",
-  "password": "fsh#fD23{-"
+  "username": "user2",
+  "password": "Qwer123!"
 }
 ```
 
@@ -94,7 +96,7 @@ Authenticate an existing user and return access and refresh tokens.
 
 | Field    | Rules                                 |
 | -------- | ------------------------------------- |
-| email    | required                              |
+| username | required                              |
 | password | required                              |
 
 ### Success Response
@@ -113,7 +115,7 @@ Authenticate an existing user and return access and refresh tokens.
 | Status | Description               |
 | ------ | ------------------------- |
 | 400    | Validation error          |
-| 401    | Invalid email or password |
+| 401    | Invalid username or password |
 | 500    | Internal server error     |
 
 ---
@@ -851,6 +853,18 @@ No request body.
 
 # Place
 
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/places` | Create place |
+| GET | `/places` | List places (filtering, distance sorting, pagination — see [Get places](#get-places)) |
+| GET | `/places/{id}` | Get place by id |
+| PUT | `/places/{id}` | Update place (ADMIN only) |
+| DELETE | `/places/{id}` | Delete place (ADMIN only) |
+
+---
+
 ## Create place
 
 ### Endpoint
@@ -938,7 +952,9 @@ GET /places
 
 ### Description
 
-Get a list of available places with optional filtering by city, type, and distance from a reference point (office or place).
+Get a list of active places with optional filtering by city, type, and distance from a reference point (office or hotel/place).
+
+Only places with `isActive = true` are returned.
 
 ### Authorization
 
@@ -950,13 +966,77 @@ JWT required
 |-----------|-------|
 | cityId | optional, filter by city ID |
 | placeTypeId | optional, filter by place type ID |
-| officeId | optional, use office coordinates as distance reference (requires maxDistanceKm) |
-| referencePlaceId | optional, use place coordinates as distance reference (requires maxDistanceKm) |
-| maxDistanceKm | optional, positive number; filter places within this radius in km from officeId or referencePlaceId |
+| officeId | optional, use office coordinates as distance reference; sorts results by distance (nearest first) |
+| referencePlaceId | optional, use place coordinates as distance reference (e.g. a hotel); sorts results by distance (nearest first); the reference place itself is excluded |
+| maxDistanceKm | optional, positive number; when used with `officeId` or `referencePlaceId`, return only places within this radius in km |
 | page | optional, zero-based page index (default: 0) |
 | size | optional, page size (default: 20, max: 100) |
 
-When `officeId` or `referencePlaceId` is used, results are sorted by `distanceKm` ascending and include the `distanceKm` field. Without a distance reference, `distanceKm` is omitted.
+### Filtering examples
+
+Filter by city:
+
+```http
+GET /places?cityId=1
+```
+
+Filter by type:
+
+```http
+GET /places?placeTypeId=2
+```
+
+Combine city and type:
+
+```http
+GET /places?cityId=1&placeTypeId=2
+```
+
+Filter by distance (within 1 km of office):
+
+```http
+GET /places?officeId=1&maxDistanceKm=1
+```
+
+Filter by distance from a hotel:
+
+```http
+GET /places?referencePlaceId=10&maxDistanceKm=2
+```
+
+### Distance sorting
+
+When `officeId` or `referencePlaceId` is provided, each result includes `distanceKm` and the list is sorted **ascending** (nearest first, farthest last). Distance is calculated using the Haversine formula (or OSRM when configured).
+
+Sort all places by distance from an office (no radius limit):
+
+```http
+GET /places?officeId=1
+```
+
+Sort places near a hotel:
+
+```http
+GET /places?referencePlaceId=10
+```
+
+Combine filtering and distance sorting:
+
+```http
+GET /places?cityId=1&placeTypeId=2&officeId=1
+```
+
+Without `officeId` or `referencePlaceId`, `distanceKm` is omitted and results are ordered by `id` ascending.
+
+### Pagination
+
+Paginate results:
+
+```http
+GET /places?page=0&size=10
+```
+
+Pagination applies after filtering and sorting. Defaults: `page=0`, `size=20` (max `size=100`).
 
 ### Request Body
 
@@ -966,7 +1046,28 @@ No request body.
 
 **200 OK**
 
-Example with distance filter (`?officeId=1&maxDistanceKm=5`):
+Example — filter by city and type:
+
+```json
+[
+  {
+    "id": 10,
+    "cityId": 1,
+    "placeTypeId": 2,
+    "createdBy": 3,
+    "name": "Coffee House",
+    "address": "Tverskaya 15",
+    "latitude": 55.755826,
+    "longitude": 37.617300,
+    "description": "Popular cafe near the office",
+    "isActive": true,
+    "avgRating": 4.5,
+    "createdAt": "2026-06-09T12:00:00Z"
+  }
+]
+```
+
+Example — distance sorting from office (`?officeId=1`):
 
 ```json
 [
@@ -1002,6 +1103,32 @@ Example with distance filter (`?officeId=1&maxDistanceKm=5`):
   }
 ]
 ```
+
+The first item has the smallest `distanceKm` (nearest); the last item has the largest (farthest).
+
+Example — paginated list (`?cityId=1&page=0&size=10`):
+
+Same response shape as other list endpoints in this API (e.g. `GET /bookings`, `GET /reviews`): a JSON array of items for the requested page. Pagination is controlled via query params; the response body does not wrap items in a page object.
+
+```json
+[
+  {
+    "id": 10,
+    "cityId": 1,
+    "placeTypeId": 2,
+    "createdBy": 3,
+    "name": "Coffee House",
+    "address": "Tverskaya 15",
+    "latitude": 55.755826,
+    "longitude": 37.617300,
+    "description": "Popular cafe near the office",
+    "isActive": true,
+    "avgRating": 4.5,
+    "createdAt": "2026-06-09T12:00:00Z"
+  }
+]
+```
+
 ### Error Responses
 
 | Status | Description |

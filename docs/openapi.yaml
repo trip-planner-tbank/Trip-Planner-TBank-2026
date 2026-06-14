@@ -48,7 +48,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '409':
-          description: User already exists
+          description: Username or email already exists
           content:
             application/json:
               schema:
@@ -60,7 +60,7 @@ paths:
     post:
       tags: [Authentication]
       summary: Log in
-      description: Authenticate an existing user and return access and refresh tokens.
+      description: Authenticate an existing user by username and password and return access and refresh tokens.
       security: []
       requestBody:
         required: true
@@ -78,7 +78,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          description: Invalid email or password
+          description: Invalid username or password
           content:
             application/json:
               schema:
@@ -436,11 +436,18 @@ paths:
       tags: [Place]
       summary: Get places
       description: |
-        Get a list of available places with optional filtering by city, type, and distance
-        from a reference point (office or place).
+        Get a list of active places with optional filtering by city, type, and distance
+        from a reference point (office or hotel/place).
 
-        When `officeId` or `referencePlaceId` is used, results are sorted by `distanceKm`
-        ascending and include the `distanceKm` field. Without a distance reference, `distanceKm` is omitted.
+        **Filtering:** `cityId`, `placeTypeId`, and optionally `maxDistanceKm` with
+        `officeId` or `referencePlaceId` (e.g. `?cityId=1&placeTypeId=2`).
+
+        **Distance sorting:** when `officeId` or `referencePlaceId` is provided, results
+        include `distanceKm` and are sorted ascending (nearest first). Example:
+        `GET /places?officeId=1`.
+
+        **Pagination:** `page` (default 0) and `size` (default 20, max 100), e.g.
+        `GET /places?page=0&size=10`.
       parameters:
         - name: cityId
           in: query
@@ -448,38 +455,86 @@ paths:
           schema:
             type: integer
             format: int64
+          description: Filter by city ID
         - name: placeTypeId
           in: query
           required: false
           schema:
             type: integer
             format: int64
+          description: Filter by place type ID
         - name: officeId
           in: query
           required: false
           schema:
             type: integer
             format: int64
-          description: Office coordinates used as distance reference (use with maxDistanceKm)
+          description: Office coordinates as distance reference; sorts by distance (nearest first)
         - name: referencePlaceId
           in: query
           required: false
           schema:
             type: integer
             format: int64
-          description: Place coordinates used as distance reference (use with maxDistanceKm)
+          description: Place coordinates as distance reference (e.g. hotel); sorts by distance; reference place excluded
         - $ref: '#/components/parameters/MaxDistanceKmQuery'
         - $ref: '#/components/parameters/PageQuery'
         - $ref: '#/components/parameters/SizeQuery'
       responses:
         '200':
-          description: OK
+          description: |
+            OK. Returns a JSON array (same pagination shape as GET /bookings and GET /reviews).
+            With `officeId` or `referencePlaceId`, items include `distanceKm` sorted ascending
+            (nearest first). Use `page` and `size` to paginate after filtering and sorting.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/PlaceWithDistance'
+              examples:
+                filterByCityAndType:
+                  summary: Filter by city and type
+                  value:
+                    - id: 10
+                      cityId: 1
+                      placeTypeId: 2
+                      createdBy: 3
+                      name: Coffee House
+                      address: Tverskaya 15
+                      latitude: 55.755826
+                      longitude: 37.617300
+                      description: Popular cafe near the office
+                      isActive: true
+                      avgRating: 4.5
+                      createdAt: '2026-06-09T12:00:00Z'
+                sortedByDistanceFromOffice:
+                  summary: Sorted by distance from office (?officeId=1)
+                  value:
+                    - id: 10
+                      cityId: 1
+                      placeTypeId: 2
+                      createdBy: 3
+                      name: Coffee House
+                      address: Tverskaya 15
+                      latitude: 55.755826
+                      longitude: 37.617300
+                      isActive: true
+                      avgRating: 4.5
+                      distanceKm: 0.35
+                      createdAt: '2026-06-09T12:00:00Z'
+                    - id: 11
+                      cityId: 1
+                      placeTypeId: 1
+                      createdBy: 4
+                      name: Grand Hotel
+                      address: Arbat 10
+                      latitude: 55.7512
+                      longitude: 37.6184
+                      isActive: true
+                      avgRating: 4.8
+                      distanceKm: 1.2
+                      createdAt: '2026-06-09T12:10:00Z'
         '400':
           $ref: '#/components/responses/InvalidQueryParameters'
         '401':
@@ -1252,8 +1307,14 @@ components:
 
     SignUpRequest:
       type: object
-      required: [email, password]
+      required: [username, email, password]
       properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_]+$'
+          description: Unique login name (letters, digits, underscore)
         email:
           type: string
           format: email
@@ -1266,11 +1327,13 @@ components:
 
     LoginRequest:
       type: object
-      required: [email, password]
+      required: [username, password]
       properties:
-        email:
+        username:
           type: string
-          format: email
+          minLength: 3
+          maxLength: 50
+          description: User login (e.g. user1, user2)
         password:
           type: string
 
