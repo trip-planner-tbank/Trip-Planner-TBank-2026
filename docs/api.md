@@ -853,17 +853,6 @@ No request body.
 
 # Place
 
-## Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/places` | Create place |
-| GET | `/places` | List places (filtering, distance sorting, pagination — see [Get places](#get-places)) |
-| GET | `/places/{id}` | Get place by id |
-| PUT | `/places/{id}` | Update place (ADMIN only) |
-| DELETE | `/places/{id}` | Delete place (ADMIN only) |
-
----
 
 ## Create place
 
