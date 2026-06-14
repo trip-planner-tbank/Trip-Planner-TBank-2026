@@ -1,7 +1,11 @@
 # Compiled class file
 *.class
 *.env
+.env
 .idea
+node_modules/
+admin/dist/
+admin/node_modules/
 
 # Log file
 *.log

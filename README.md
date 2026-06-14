@@ -126,15 +126,52 @@ docker compose version
 
 Создайте файл .env в корне проекта:
 ```text
+POSTGRES_DB=trip_planner
 DB_URL=jdbc:postgresql://db:5432/trip_planner
 DB_USER=postgres
 DB_PASSWORD=1234
+VITE_API_URL=http://localhost:8080
 ```
 
 ### Запуск проекта
 Собрать и запустить все сервисы:
 ```
 docker compose up --build
+```
+
+После запуска:
+- Backend API: http://localhost:8080
+- React Admin: http://localhost:3000
+- PostgreSQL: localhost:5432
+
+---
+
+## Структура проекта
+
+```text
+.
+├── admin/                       # React Admin frontend
+│   ├── src/
+│   │   ├── app/                 # app shell, providers, theme
+│   │   ├── features/            # feature-level logic
+│   │   ├── resources/           # React Admin resources
+│   │   ├── shared/              # shared API/config helpers
+│   │   └── widgets/             # reusable UI blocks
+│   ├── Dockerfile
+│   └── nginx.conf
+├── backend/                     # Java Spring Boot backend
+│   ├── src/main/java/com/tripplanner/backend/
+│   │   ├── application/         # use cases and services
+│   │   ├── config/              # Spring, security, CORS, OpenAPI config
+│   │   ├── domain/              # domain model and business rules
+│   │   ├── infrastructure/      # persistence, security, external adapters
+│   │   ├── shared/              # shared primitives and helpers
+│   │   └── web/                 # controllers and HTTP layer
+│   ├── src/main/resources/db/migration/
+│   └── Dockerfile
+├── docs/                        # API documentation
+├── docker-compose.yml
+└── .env.example
 ```
 
 

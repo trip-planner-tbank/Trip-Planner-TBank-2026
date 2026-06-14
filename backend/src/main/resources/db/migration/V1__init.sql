@@ -1,0 +1,2 @@
+-- Initial Flyway migration placeholder.
+-- Add schema objects here as domain entities are implemented.
