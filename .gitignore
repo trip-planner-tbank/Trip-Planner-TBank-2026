@@ -9,6 +9,7 @@ admin/node_modules/
 
 # Log file
 *.log
+docs/superpowers/
 
 # BlueJ files
 *.ctxt
