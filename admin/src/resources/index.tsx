@@ -1,39 +1,57 @@
-import BusinessIcon from "@mui/icons-material/Business";
+import BookingIcon from "@mui/icons-material/Bookmark";
 import HotelIcon from "@mui/icons-material/Hotel";
-import LocationCityIcon from "@mui/icons-material/LocationCity";
+import PlaceIcon from "@mui/icons-material/Place";
 import RateReviewIcon from "@mui/icons-material/RateReview";
 import type { ResourceProps } from "react-admin";
-import { EditGuesser, ListGuesser, ShowGuesser } from "react-admin";
+
+import {
+  BookingCreate,
+  BookingList,
+  BookingShow,
+  BookingStatusEdit,
+} from "../features/bookings";
+import {
+  HotelCreate,
+  HotelDetailsEdit,
+  HotelList,
+  HotelShow,
+} from "../features/hotels";
+import { PlaceCreate, PlaceList, PlaceShow } from "../features/places";
+import { ReviewCreate, ReviewList, ReviewShow } from "../features/reviews";
 
 export const resources: ResourceProps[] = [
   {
-    name: "cities",
-    list: ListGuesser,
-    edit: EditGuesser,
-    show: ShowGuesser,
-    icon: LocationCityIcon,
-    recordRepresentation: "name",
+    name: "bookings",
+    list: BookingList,
+    show: BookingShow,
+    create: BookingCreate,
+    edit: BookingStatusEdit,
+    icon: BookingIcon,
+    recordRepresentation: "id",
   },
   {
-    name: "offices",
-    list: ListGuesser,
-    edit: EditGuesser,
-    show: ShowGuesser,
-    icon: BusinessIcon,
-    recordRepresentation: "name",
+    name: "reviews",
+    list: ReviewList,
+    show: ReviewShow,
+    create: ReviewCreate,
+    icon: RateReviewIcon,
+    recordRepresentation: "id",
   },
   {
     name: "hotels",
-    list: ListGuesser,
-    edit: EditGuesser,
-    show: ShowGuesser,
+    list: HotelList,
+    show: HotelShow,
+    create: HotelCreate,
+    edit: HotelDetailsEdit,
     icon: HotelIcon,
     recordRepresentation: "name",
   },
   {
-    name: "reviews",
-    list: ListGuesser,
-    show: ShowGuesser,
-    icon: RateReviewIcon,
+    name: "places",
+    list: PlaceList,
+    show: PlaceShow,
+    create: PlaceCreate,
+    icon: PlaceIcon,
+    recordRepresentation: "name",
   },
 ];
