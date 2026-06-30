@@ -11,7 +11,9 @@ import { API_URL } from "../../shared/config/env";
 
 export function AdminDashboard() {
   const [counts, setCounts] = useState({
-    bookings: 0,
+    cities: 0,
+    offices: 0,
+    places: 0,
     reviews: 0,
     hotels: 0,
   });
@@ -19,17 +21,19 @@ export function AdminDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const [bookingsRes, reviewsRes, placesRes] = await Promise.all([
-          httpClient(`${API_URL}/bookings`),
+        const [citiesRes, officesRes, reviewsRes, placesRes] = await Promise.all([
+          httpClient(`${API_URL}/cities`),
+          httpClient(`${API_URL}/offices`),
           httpClient(`${API_URL}/reviews`),
           httpClient(`${API_URL}/places`),
         ]);
 
-        const bookings = Array.isArray((bookingsRes.json as any).content)
-          ? ((bookingsRes.json as any).content as unknown[])
-          : Array.isArray(bookingsRes.json)
-            ? (bookingsRes.json as unknown[])
-            : [];
+        const cities = Array.isArray(citiesRes.json)
+          ? (citiesRes.json as unknown[])
+          : [];
+        const offices = Array.isArray(officesRes.json)
+          ? (officesRes.json as unknown[])
+          : [];
         const reviews = Array.isArray((reviewsRes.json as any).content)
           ? ((reviewsRes.json as any).content as unknown[])
           : Array.isArray(reviewsRes.json)
@@ -42,7 +46,9 @@ export function AdminDashboard() {
             : [];
 
         setCounts({
-          bookings: bookings.length,
+          cities: cities.length,
+          offices: offices.length,
+          places: places.length,
           reviews: reviews.length,
           hotels: places.filter((p) => p.placeTypeId === 1).length,
         });
@@ -60,19 +66,35 @@ export function AdminDashboard() {
           Trip Planner Admin
         </Typography>
         <Typography color="text.secondary" gutterBottom>
-          Manage bookings, reviews, and hotels from one workspace.
+          Manage cities, offices, places, hotels, and reviews from one workspace.
         </Typography>
 
         <Grid container spacing={2} sx={{ mt: 2 }}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Card variant="outlined">
               <CardContent>
-                <Typography color="text.secondary">Bookings</Typography>
-                <Typography variant="h4">{counts.bookings}</Typography>
+                <Typography color="text.secondary">Cities</Typography>
+                <Typography variant="h4">{counts.cities}</Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography color="text.secondary">Offices</Typography>
+                <Typography variant="h4">{counts.offices}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography color="text.secondary">Places</Typography>
+                <Typography variant="h4">{counts.places}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography color="text.secondary">Reviews</Typography>
@@ -80,7 +102,7 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card variant="outlined">
               <CardContent>
                 <Typography color="text.secondary">Hotels</Typography>
