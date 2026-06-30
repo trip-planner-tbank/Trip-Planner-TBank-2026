@@ -16,10 +16,16 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
-    private String message;
-
     @Builder.Default
     private Instant timestamp = Instant.now();
+
+    private Integer status;
+
+    private String error;
+
+    private String message;
+
+    private String path;
 
     private Map<String, String> errors;
 
