@@ -1,8 +1,8 @@
 import {
+  AutocompleteInput,
   Create,
   NumberInput,
   ReferenceInput,
-  SelectInput,
   SimpleForm,
   TextInput,
   required,
@@ -13,7 +13,7 @@ export function ReviewCreate() {
     <Create>
       <SimpleForm>
         <ReferenceInput source="placeId" reference="places">
-          <SelectInput optionText="name" validate={required()} />
+          <AutocompleteInput optionText="name" validate={required()} />
         </ReferenceInput>
         <NumberInput
           source="rating"

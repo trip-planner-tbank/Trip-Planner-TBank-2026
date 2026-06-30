@@ -1,7 +1,6 @@
 import {
-  BooleanField,
   Datagrid,
-  DeleteButton,
+  DateField,
   EditButton,
   List,
   NumberField,
@@ -10,20 +9,13 @@ import {
   TextField,
 } from "react-admin";
 
-export function PlaceList() {
+export function OfficeList() {
   return (
     <List>
       <Datagrid rowClick="show">
         <TextField source="id" />
         <TextField source="name" />
         <TextField source="address" />
-        <ReferenceField
-          source="placeTypeId"
-          reference="place-types"
-          label="Type"
-        >
-          <TextField source="name" />
-        </ReferenceField>
         <ReferenceField
           source="cityId"
           reference="cities"
@@ -32,11 +24,11 @@ export function PlaceList() {
         >
           <TextField source="name" />
         </ReferenceField>
-        <NumberField source="avgRating" />
-        <BooleanField source="isActive" />
+        <NumberField source="latitude" />
+        <NumberField source="longitude" />
+        <DateField source="createdAt" showTime />
         <ShowButton />
         <EditButton />
-        <DeleteButton />
       </Datagrid>
     </List>
   );

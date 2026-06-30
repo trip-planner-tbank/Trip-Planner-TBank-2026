@@ -1,39 +1,69 @@
-import BookingIcon from "@mui/icons-material/Bookmark";
+import BusinessIcon from "@mui/icons-material/Business";
+import CategoryIcon from "@mui/icons-material/Category";
 import HotelIcon from "@mui/icons-material/Hotel";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
 import PlaceIcon from "@mui/icons-material/Place";
 import RateReviewIcon from "@mui/icons-material/RateReview";
 import type { ResourceProps } from "react-admin";
 
-import {
-  BookingCreate,
-  BookingList,
-  BookingShow,
-  BookingStatusEdit,
-} from "../features/bookings";
+import { CityCreate, CityEdit, CityList, CityShow } from "../features/cities";
 import {
   HotelCreate,
   HotelDetailsEdit,
   HotelList,
   HotelShow,
 } from "../features/hotels";
-import { PlaceCreate, PlaceList, PlaceShow } from "../features/places";
-import { ReviewCreate, ReviewList, ReviewShow } from "../features/reviews";
+import {
+  OfficeCreate,
+  OfficeEdit,
+  OfficeList,
+  OfficeShow,
+} from "../features/offices";
+import {
+  PlaceCreate,
+  PlaceEdit,
+  PlaceList,
+  PlaceShow,
+} from "../features/places";
+import { PlaceTypeList } from "../features/placeTypes";
+import {
+  ReviewCreate,
+  ReviewEdit,
+  ReviewList,
+  ReviewShow,
+} from "../features/reviews";
 
 export const resources: ResourceProps[] = [
   {
-    name: "bookings",
-    list: BookingList,
-    show: BookingShow,
-    create: BookingCreate,
-    edit: BookingStatusEdit,
-    icon: BookingIcon,
-    recordRepresentation: "id",
+    name: "cities",
+    list: CityList,
+    show: CityShow,
+    create: CityCreate,
+    edit: CityEdit,
+    icon: LocationCityIcon,
+    recordRepresentation: "name",
+  },
+  {
+    name: "offices",
+    list: OfficeList,
+    show: OfficeShow,
+    create: OfficeCreate,
+    edit: OfficeEdit,
+    icon: BusinessIcon,
+    recordRepresentation: "name",
+  },
+  {
+    name: "place-types",
+    list: PlaceTypeList,
+    icon: CategoryIcon,
+    recordRepresentation: "name",
   },
   {
     name: "reviews",
     list: ReviewList,
     show: ReviewShow,
     create: ReviewCreate,
+    edit: ReviewEdit,
     icon: RateReviewIcon,
     recordRepresentation: "id",
   },
@@ -51,6 +81,7 @@ export const resources: ResourceProps[] = [
     list: PlaceList,
     show: PlaceShow,
     create: PlaceCreate,
+    edit: PlaceEdit,
     icon: PlaceIcon,
     recordRepresentation: "name",
   },

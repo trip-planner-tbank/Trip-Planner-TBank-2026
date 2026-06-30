@@ -2,6 +2,7 @@ import {
   BooleanField,
   DateField,
   NumberField,
+  ReferenceField,
   Show,
   SimpleShowLayout,
   TextField,
@@ -14,8 +15,21 @@ export function PlaceShow() {
         <TextField source="id" />
         <TextField source="name" />
         <TextField source="address" />
-        <NumberField source="cityId" label="City ID" />
-        <NumberField source="placeTypeId" label="Type ID" />
+        <ReferenceField
+          source="cityId"
+          reference="cities"
+          label="City"
+          link="show"
+        >
+          <TextField source="name" />
+        </ReferenceField>
+        <ReferenceField
+          source="placeTypeId"
+          reference="place-types"
+          label="Type"
+        >
+          <TextField source="name" />
+        </ReferenceField>
         <NumberField source="createdBy" label="Created by" />
         <TextField source="description" />
         <NumberField source="latitude" />

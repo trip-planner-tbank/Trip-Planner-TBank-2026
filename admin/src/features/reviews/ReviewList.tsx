@@ -1,17 +1,23 @@
 import {
   Datagrid,
   DateField,
+  EditButton,
   FilterButton,
   List,
   ReferenceField,
+  ReferenceInput,
   SearchInput,
+  SelectInput,
+  ShowButton,
   TextField,
   TopToolbar,
 } from "react-admin";
 
 const reviewFilters = [
   <SearchInput key="search" source="q" alwaysOn />,
-  <SearchInput key="placeId" source="placeId" />,
+  <ReferenceInput key="placeId" source="placeId" reference="places">
+    <SelectInput optionText="name" />
+  </ReferenceInput>,
   <SearchInput key="userId" source="userId" />,
 ];
 
@@ -33,6 +39,8 @@ export function ReviewList() {
         </ReferenceField>
         <TextField source="rating" />
         <DateField source="createdAt" showTime />
+        <ShowButton />
+        <EditButton />
       </Datagrid>
     </List>
   );

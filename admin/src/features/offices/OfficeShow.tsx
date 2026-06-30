@@ -1,5 +1,5 @@
 import {
-  BooleanField,
+  DateField,
   NumberField,
   ReferenceField,
   Show,
@@ -7,13 +7,11 @@ import {
   TextField,
 } from "react-admin";
 
-export function HotelShow() {
+export function OfficeShow() {
   return (
     <Show>
       <SimpleShowLayout>
         <TextField source="id" />
-        <TextField source="name" />
-        <TextField source="address" />
         <ReferenceField
           source="cityId"
           reference="cities"
@@ -22,16 +20,11 @@ export function HotelShow() {
         >
           <TextField source="name" />
         </ReferenceField>
-        <TextField source="description" />
+        <TextField source="name" />
+        <TextField source="address" />
         <NumberField source="latitude" />
         <NumberField source="longitude" />
-        <BooleanField source="isActive" />
-        <NumberField source="avgRating" />
-
-        <TextField source="starRating" label="Star rating" />
-        <TextField source="phone" />
-        <TextField source="website" />
-        <NumberField source="roomCount" label="Room count" />
+        <DateField source="createdAt" showTime />
       </SimpleShowLayout>
     </Show>
   );

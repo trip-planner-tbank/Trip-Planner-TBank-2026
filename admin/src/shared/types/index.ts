@@ -1,14 +1,24 @@
-export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
-
-export interface Booking {
+export interface City {
   id: number;
-  userId: number;
-  placeId: number;
-  checkIn: string;
-  checkOut: string;
-  status: BookingStatus;
+  name: string;
+  country: string;
   createdAt: string;
-  updatedAt: string;
+}
+
+export interface Office {
+  id: number;
+  cityId: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  createdAt: string;
+}
+
+export interface PlaceType {
+  id: number;
+  name: string;
+  code: string;
 }
 
 export interface Review {

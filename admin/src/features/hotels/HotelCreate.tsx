@@ -1,6 +1,8 @@
 import {
+  AutocompleteInput,
   Create,
   NumberInput,
+  ReferenceInput,
   SimpleForm,
   TextInput,
   required,
@@ -12,7 +14,9 @@ export function HotelCreate() {
       <SimpleForm>
         <TextInput source="name" validate={required()} />
         <TextInput source="address" validate={required()} />
-        <NumberInput source="cityId" validate={required()} />
+        <ReferenceInput source="cityId" reference="cities" label="City">
+          <AutocompleteInput optionText="name" validate={required()} />
+        </ReferenceInput>
         <NumberInput source="latitude" validate={required()} />
         <NumberInput source="longitude" validate={required()} />
         <TextInput source="description" multiline fullWidth />
