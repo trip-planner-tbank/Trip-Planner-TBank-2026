@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS place_types (
     code VARCHAR(20) NOT NULL UNIQUE
 );
 
-INSERT INTO place_types (name, code)
+INSERT INTO place_types (name, code) VALUES
     ('Hotel', 'HOTEL'),
     ('Cafe', 'CAFE'),
     ('Restaurant', 'RESTAURANT'),
