@@ -1,6 +1,7 @@
 package com.tripplanner.backend.service;
 
 import com.tripplanner.backend.domain.Review;
+import com.tripplanner.backend.domain.Place;
 import com.tripplanner.backend.dto.review.CreateReviewRequest;
 import com.tripplanner.backend.dto.review.ReviewResponse;
 import com.tripplanner.backend.dto.review.UpdateReviewRequest;
@@ -8,10 +9,9 @@ import com.tripplanner.backend.exception.ConflictException;
 import com.tripplanner.backend.exception.ForbiddenException;
 import com.tripplanner.backend.exception.NotFoundException;
 import com.tripplanner.backend.exception.ValidationException;
-import com.tripplanner.backend.mock.domain.Place;
-import com.tripplanner.backend.mock.repository.PlaceRepository;
-import com.tripplanner.backend.mock.security.SecurityUtil;
+import com.tripplanner.backend.repository.PlaceRepository;
 import com.tripplanner.backend.repository.ReviewRepository;
+import com.tripplanner.backend.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -89,9 +89,10 @@ public class ReviewService {
             throw new ValidationException("At least one of rating or comment must be provided");
         }
 
-        Long userId = SecurityUtil.getCurrentUserId();
-        Review review = reviewRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new NotFoundException("Review not found"));
+        Review review = SecurityUtil.isAdmin()
+                ? findReviewOrThrow(id)
+                : reviewRepository.findByIdAndUserId(id, SecurityUtil.getCurrentUserId())
+                        .orElseThrow(() -> new NotFoundException("Review not found"));
 
         if (request.getRating() != null) {
             review.setRating(request.getRating());

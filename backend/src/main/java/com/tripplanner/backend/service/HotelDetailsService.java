@@ -1,16 +1,16 @@
 package com.tripplanner.backend.service;
 
 import com.tripplanner.backend.domain.HotelDetails;
+import com.tripplanner.backend.domain.Place;
+import com.tripplanner.backend.domain.PlaceType;
 import com.tripplanner.backend.dto.hotel.CreateHotelDetailsRequest;
 import com.tripplanner.backend.dto.hotel.HotelDetailsResponse;
 import com.tripplanner.backend.exception.ConflictException;
 import com.tripplanner.backend.exception.NotFoundException;
 import com.tripplanner.backend.exception.ValidationException;
-import com.tripplanner.backend.mock.domain.Place;
-import com.tripplanner.backend.mock.domain.PlaceType;
-import com.tripplanner.backend.mock.repository.PlaceRepository;
-import com.tripplanner.backend.mock.repository.PlaceTypeRepository;
 import com.tripplanner.backend.repository.HotelDetailsRepository;
+import com.tripplanner.backend.repository.PlaceRepository;
+import com.tripplanner.backend.repository.PlaceTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

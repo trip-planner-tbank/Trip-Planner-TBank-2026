@@ -1,16 +1,15 @@
 package com.tripplanner.backend.service;
 
+import com.tripplanner.backend.domain.Place;
 import com.tripplanner.backend.domain.Wishlist;
 import com.tripplanner.backend.dto.wishlist.CreateWishlistRequest;
 import com.tripplanner.backend.dto.wishlist.PlaceSummary;
 import com.tripplanner.backend.dto.wishlist.WishlistEntryResponse;
 import com.tripplanner.backend.exception.ConflictException;
-import com.tripplanner.backend.exception.ForbiddenException;
 import com.tripplanner.backend.exception.NotFoundException;
-import com.tripplanner.backend.mock.domain.Place;
-import com.tripplanner.backend.mock.repository.PlaceRepository;
-import com.tripplanner.backend.mock.security.SecurityUtil;
+import com.tripplanner.backend.repository.PlaceRepository;
 import com.tripplanner.backend.repository.WishlistRepository;
+import com.tripplanner.backend.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

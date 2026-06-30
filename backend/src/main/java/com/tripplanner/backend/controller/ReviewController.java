@@ -36,6 +36,12 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.listReviews(placeId, userId, page, size));
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Get review", description = "Get a specific review by id.")
+    public ResponseEntity<ReviewResponse> getReview(@PathVariable Long id) {
+        return ResponseEntity.ok(reviewService.getReview(id));
+    }
+
     @PostMapping
     @Operation(summary = "Create review", description = "Create a new review for a place. One user can create only one review per place.")
     public ResponseEntity<ReviewResponse> createReview(@Valid @RequestBody CreateReviewRequest request) {
@@ -43,7 +49,7 @@ public class ReviewController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update review", description = "Update an existing review. Only the owner of the review can update it.")
+    @Operation(summary = "Update review", description = "Update an existing review. Owners can update their own reviews, admins can update any review.")
     public ResponseEntity<ReviewResponse> updateReview(
             @PathVariable Long id,
             @Valid @RequestBody UpdateReviewRequest request) {
