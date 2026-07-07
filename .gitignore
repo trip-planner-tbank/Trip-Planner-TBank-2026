@@ -6,6 +6,8 @@
 node_modules/
 admin/dist/
 admin/node_modules/
+admin/tsconfig.tsbuildinfo
+admin/tsconfig
 
 # Log file
 *.log
