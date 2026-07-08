@@ -16,7 +16,7 @@ export const authProvider: AuthProvider = {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: username,
+        username,
         password,
       }),
     });
