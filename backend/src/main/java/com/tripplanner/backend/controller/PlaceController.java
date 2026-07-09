@@ -1,11 +1,8 @@
 package com.tripplanner.backend.controller;
 
 import com.tripplanner.backend.domain.Place;
-import com.tripplanner.backend.exception.NotFoundException;
-import com.tripplanner.backend.repository.CityRepository;
-import com.tripplanner.backend.repository.PlaceRepository;
-import com.tripplanner.backend.repository.PlaceTypeRepository;
-import com.tripplanner.backend.security.SecurityUtil;
+import com.tripplanner.backend.dto.place.PlaceWithDistanceResponse;
+import com.tripplanner.backend.service.PlaceService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -24,45 +21,39 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/places")
 @RequiredArgsConstructor
+@Validated
 public class PlaceController {
 
-    private final PlaceRepository placeRepository;
-    private final CityRepository cityRepository;
-    private final PlaceTypeRepository placeTypeRepository;
+    private final PlaceService placeService;
 
     @GetMapping
-    public ResponseEntity<List<Place>> getAllPlaces() {
-        return ResponseEntity.ok(placeRepository.findAll());
+    public ResponseEntity<List<PlaceWithDistanceResponse>> getAllPlaces(
+            @RequestParam(required = false) Long cityId,
+            @RequestParam(required = false) Long placeTypeId,
+            @RequestParam(required = false) Long officeId,
+            @RequestParam(required = false) Long referencePlaceId,
+            @RequestParam(required = false) @DecimalMin("0.0") Double maxDistanceKm,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(placeService.list(
+                cityId, placeTypeId, officeId, referencePlaceId, maxDistanceKm, page, size));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Place> getPlace(@PathVariable Long id) {
-        return ResponseEntity.ok(findPlaceOrThrow(id));
+        return ResponseEntity.ok(placeService.get(id));
     }
 
     @PostMapping
     public ResponseEntity<Place> createPlace(@Valid @RequestBody CreatePlaceRequest request) {
-        validateReferences(request.cityId(), request.placeTypeId());
-        Place place = Place.builder()
-                .cityId(request.cityId())
-                .placeTypeId(request.placeTypeId())
-                .createdBy(SecurityUtil.getCurrentUserId())
-                .name(request.name())
-                .address(request.address())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
-                .description(request.description())
-                .isActive(true)
-                .avgRating(0.0)
-                .build();
-
-        Place saved = placeRepository.save(place);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(placeService.create(request));
     }
 
     @PutMapping("/{id}")
@@ -70,38 +61,22 @@ public class PlaceController {
     public ResponseEntity<Place> updatePlace(
             @PathVariable Long id,
             @Valid @RequestBody CreatePlaceRequest request) {
-        validateReferences(request.cityId(), request.placeTypeId());
-        Place place = findPlaceOrThrow(id);
-        place.setCityId(request.cityId());
-        place.setPlaceTypeId(request.placeTypeId());
-        place.setName(request.name());
-        place.setAddress(request.address());
-        place.setLatitude(request.latitude());
-        place.setLongitude(request.longitude());
-        place.setDescription(request.description());
-        return ResponseEntity.ok(placeRepository.save(place));
+        return ResponseEntity.ok(placeService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
-        Place place = findPlaceOrThrow(id);
-        placeRepository.delete(place);
+        placeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    private Place findPlaceOrThrow(Long id) {
-        return placeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Place not found"));
-    }
-
-    private void validateReferences(Long cityId, Long placeTypeId) {
-        if (!cityRepository.existsById(cityId)) {
-            throw new NotFoundException("City not found");
-        }
-        if (!placeTypeRepository.existsById(placeTypeId)) {
-            throw new NotFoundException("Place type not found");
-        }
+    @GetMapping("/{id}/nearby-places")
+    public ResponseEntity<List<PlaceWithDistanceResponse>> getNearbyPlaces(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long placeTypeId,
+            @RequestParam(required = false) @DecimalMin("0.0") Double maxDistanceKm) {
+        return ResponseEntity.ok(placeService.nearbyPlace(id, placeTypeId, maxDistanceKm));
     }
 
     public record CreatePlaceRequest(
@@ -109,8 +84,8 @@ public class PlaceController {
             @NotNull Long placeTypeId,
             @NotBlank @Size(max = 100) String name,
             @NotBlank @Size(max = 255) String address,
-            @NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
-            @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
+            @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
+            @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
             @Size(max = 1000) String description
     ) {
     }

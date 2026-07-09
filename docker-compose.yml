@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-1234}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,13 +22,15 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/trip_planner}
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-trip_planner}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-1234}
       JWT_SECRET: ${JWT_SECRET:-change-this-development-secret-to-a-long-random-value}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin12345}
+      NOMINATIM_BASE_URL: ${NOMINATIM_BASE_URL:-https://nominatim.openstreetmap.org}
+      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-TripPlanner-TBank/1.0}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-user1}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-user1@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Qwer123!}
     depends_on:
       db:
         condition: service_healthy

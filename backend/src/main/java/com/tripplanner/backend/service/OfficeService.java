@@ -1,6 +1,7 @@
 package com.tripplanner.backend.service;
 
 import com.tripplanner.backend.domain.Office;
+import com.tripplanner.backend.domain.City;
 import com.tripplanner.backend.dto.office.OfficeRequest;
 import com.tripplanner.backend.exception.NotFoundException;
 import com.tripplanner.backend.repository.CityRepository;
@@ -16,16 +17,18 @@ public class OfficeService {
 
     private final OfficeRepository officeRepository;
     private final CityRepository cityRepository;
+    private final GeocodingService geocodingService;
 
     @Transactional
     public Office create(OfficeRequest request) {
-        ensureCityExists(request.cityId());
+        City city = findCityOrThrow(request.cityId());
+        Coordinates coordinates = resolveCoordinates(request, city);
         Office office = Office.builder()
                 .cityId(request.cityId())
                 .name(request.name())
                 .address(request.address())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
+                .latitude(coordinates.latitude())
+                .longitude(coordinates.longitude())
                 .build();
         return officeRepository.save(office);
     }
@@ -46,13 +49,14 @@ public class OfficeService {
 
     @Transactional
     public Office update(Long id, OfficeRequest request) {
-        ensureCityExists(request.cityId());
+        City city = findCityOrThrow(request.cityId());
+        Coordinates coordinates = resolveCoordinates(request, city);
         Office office = findOrThrow(id);
         office.setCityId(request.cityId());
         office.setName(request.name());
         office.setAddress(request.address());
-        office.setLatitude(request.latitude());
-        office.setLongitude(request.longitude());
+        office.setLatitude(coordinates.latitude());
+        office.setLongitude(coordinates.longitude());
         return officeRepository.save(office);
     }
 
@@ -68,8 +72,27 @@ public class OfficeService {
     }
 
     private void ensureCityExists(Long cityId) {
-        if (!cityRepository.existsById(cityId)) {
-            throw new NotFoundException("City not found");
+        findCityOrThrow(cityId);
+    }
+
+    private City findCityOrThrow(Long cityId) {
+        return cityRepository.findById(cityId)
+                .orElseThrow(() -> new NotFoundException("City not found"));
+    }
+
+    private Coordinates resolveCoordinates(OfficeRequest request, City city) {
+        if ((request.latitude() == null) != (request.longitude() == null)) {
+            throw new com.tripplanner.backend.exception.ValidationException(
+                    "latitude and longitude must be provided together");
         }
+        if (request.latitude() != null) {
+            return new Coordinates(request.latitude(), request.longitude());
+        }
+        var result = geocodingService.geocode(
+                request.address() + ", " + city.getName() + ", " + city.getCountry());
+        return new Coordinates(result.latitude(), result.longitude());
+    }
+
+    private record Coordinates(double latitude, double longitude) {
     }
 }
