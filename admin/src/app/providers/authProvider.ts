@@ -30,6 +30,13 @@ export const authProvider: AuthProvider = {
   },
 
   async logout() {
+    const accessToken = authStorage.getAccessToken();
+    if (accessToken) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(() => undefined);
+    }
     authStorage.clear();
   },
 
@@ -40,20 +47,21 @@ export const authProvider: AuthProvider = {
   },
 
   async checkError(error) {
-    if (error.status === 401 || error.status === 403) {
+    if (error.status === 401) {
       authStorage.clear();
       throw new Error("Session expired");
     }
   },
 
   async getIdentity() {
+    const claims = authStorage.getClaims();
     return {
-      id: "admin",
-      fullName: "Trip Planner Admin",
+      id: claims?.uid ?? claims?.sub ?? "user",
+      fullName: claims?.sub ?? "Trip Planner User",
     };
   },
 
   async getPermissions() {
-    return "admin";
+    return authStorage.getClaims()?.role ?? "USER";
   },
 };

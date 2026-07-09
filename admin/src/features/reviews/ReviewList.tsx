@@ -6,19 +6,20 @@ import {
   List,
   ReferenceField,
   ReferenceInput,
-  SearchInput,
   SelectInput,
   ShowButton,
   TextField,
   TopToolbar,
+  CreateButton,
 } from "react-admin";
 
 const reviewFilters = [
-  <SearchInput key="search" source="q" alwaysOn />,
   <ReferenceInput key="placeId" source="placeId" reference="places">
     <SelectInput optionText="name" />
   </ReferenceInput>,
-  <SearchInput key="userId" source="userId" />,
+  <ReferenceInput key="cityId" source="cityId" reference="cities">
+    <SelectInput optionText="name" />
+  </ReferenceInput>,
 ];
 
 export function ReviewList() {
@@ -28,6 +29,7 @@ export function ReviewList() {
       actions={
         <TopToolbar>
           <FilterButton />
+          <CreateButton />
         </TopToolbar>
       }
     >

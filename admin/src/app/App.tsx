@@ -16,9 +16,20 @@ export function App() {
       theme={appTheme}
       requireAuth
     >
-      {resources.map((resource) => (
-        <Resource key={resource.name} {...resource} />
-      ))}
+      {(permissions) =>
+        resources.map((resource) => {
+          const isAdmin = permissions === "ADMIN";
+          const adminManaged = ["cities", "offices", "hotels"].includes(resource.name);
+          return (
+            <Resource
+              key={resource.name}
+              {...resource}
+              create={adminManaged && !isAdmin ? undefined : resource.create}
+              edit={adminManaged && !isAdmin ? undefined : resource.edit}
+            />
+          );
+        })
+      }
     </Admin>
   );
 }
