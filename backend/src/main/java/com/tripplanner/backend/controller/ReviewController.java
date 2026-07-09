@@ -31,9 +31,10 @@ public class ReviewController {
     public ResponseEntity<Page<ReviewResponse>> getReviews(
             @RequestParam(required = false) Long placeId,
             @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long cityId,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return ResponseEntity.ok(reviewService.listReviews(placeId, userId, page, size));
+        return ResponseEntity.ok(reviewService.listReviews(placeId, userId, cityId, page, size));
     }
 
     @GetMapping("/{id}")

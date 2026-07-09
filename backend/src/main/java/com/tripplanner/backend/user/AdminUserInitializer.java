@@ -24,15 +24,19 @@ public class AdminUserInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (appUserRepository.existsByUsername(adminUsername) || appUserRepository.existsByEmail(adminEmail)) {
-            return;
+        createIfMissing(adminUsername, adminEmail, adminPassword, Role.ADMIN);
+        for (int number = 2; number <= 10; number++) {
+            createIfMissing(
+                    "user" + number,
+                    "user" + number + "@example.com",
+                    "Qwer123!",
+                    Role.USER);
         }
+    }
 
-        AppUser admin = new AppUser(
-                adminUsername,
-                adminEmail,
-                passwordEncoder.encode(adminPassword),
-                Role.ADMIN);
-        appUserRepository.save(admin);
+    private void createIfMissing(String username, String email, String password, Role role) {
+        if (!appUserRepository.existsByUsername(username) && !appUserRepository.existsByEmail(email)) {
+            appUserRepository.save(new AppUser(username, email, passwordEncoder.encode(password), role));
+        }
     }
 }

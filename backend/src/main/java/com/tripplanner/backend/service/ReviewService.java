@@ -11,6 +11,7 @@ import com.tripplanner.backend.exception.NotFoundException;
 import com.tripplanner.backend.exception.ValidationException;
 import com.tripplanner.backend.repository.PlaceRepository;
 import com.tripplanner.backend.repository.ReviewRepository;
+import com.tripplanner.backend.repository.CityRepository;
 import com.tripplanner.backend.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,32 +27,24 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final PlaceRepository placeRepository;
+    private final CityRepository cityRepository;
 
     @Transactional(readOnly = true)
-    public Page<ReviewResponse> listReviews(Long placeId, Long userId, int page, int size) {
-        if (userId != null && !SecurityUtil.isAdmin()) {
-            throw new ForbiddenException("Only admins can filter by userId");
+    public Page<ReviewResponse> listReviews(Long placeId, Long userId, Long cityId, int page, int size) {
+        if ((userId != null || cityId != null) && !SecurityUtil.isAdmin()) {
+            throw new ForbiddenException("Only admins can filter by userId or cityId");
         }
 
         if (placeId != null) {
             placeRepository.findById(placeId)
                     .orElseThrow(() -> new NotFoundException("Place not found"));
         }
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        Page<Review> reviews;
-
-        if (placeId != null && userId != null) {
-            reviews = reviewRepository.findByPlaceIdAndUserId(placeId, userId, pageable);
-        } else if (placeId != null) {
-            reviews = reviewRepository.findByPlaceId(placeId, pageable);
-        } else if (userId != null) {
-            reviews = reviewRepository.findByUserId(userId, pageable);
-        } else {
-            reviews = reviewRepository.findAll(pageable);
+        if (cityId != null && !cityRepository.existsById(cityId)) {
+            throw new NotFoundException("City not found");
         }
 
-        return reviews.map(this::mapToResponse);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return reviewRepository.findFiltered(placeId, userId, cityId, pageable).map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
