@@ -13,12 +13,12 @@ servers:
 
 tags:
   - name: Authentication
+  - name: Geocoding
   - name: City
   - name: Office
   - name: Place Type
   - name: Place
   - name: Hotel
-  - name: Booking
   - name: Review
   - name: Wishlist
 
@@ -26,6 +26,40 @@ security:
   - bearerAuth: []
 
 paths:
+  /geocoding/search:
+    get:
+      tags: [Geocoding]
+      summary: Geocode an address
+      description: Resolve an address to WGS84 coordinates using the configured Nominatim service.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Best matching address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeocodingResult'
+        '400':
+          description: Blank address or no matching address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '502':
+          description: Geocoding provider unavailable or returned invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/signup:
     post:
       tags: [Authentication]
@@ -483,7 +517,7 @@ paths:
       responses:
         '200':
           description: |
-            OK. Returns a JSON array (same pagination shape as GET /bookings and GET /reviews).
+            OK. Returns a JSON array (same pagination shape as GET /reviews).
             With `officeId` or `referencePlaceId`, items include `distanceKm` sorted ascending
             (nearest first). Use `page` and `size` to paginate after filtering and sorting.
           content:
@@ -780,172 +814,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /bookings:
-    get:
-      tags: [Booking]
-      summary: Get bookings
-      description: |
-        Get a list of bookings. Regular users receive only their own bookings.
-        ADMIN users receive all bookings and can filter by user.
-      parameters:
-        - name: status
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/BookingStatus'
-        - name: userId
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-          description: ADMIN only; filter bookings by user ID
-        - $ref: '#/components/parameters/PageQuery'
-        - $ref: '#/components/parameters/SizeQuery'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Booking'
-        '400':
-          $ref: '#/components/responses/InvalidQueryParameters'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          description: Forbidden (userId filter used by non-ADMIN)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
-    post:
-      tags: [Booking]
-      summary: Create booking
-      description: Create a new booking for a hotel place.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateBookingRequest'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Booking'
-        '400':
-          description: Validation error (invalid dates, checkOut before checkIn, or place is not a HOTEL)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/PlaceNotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /bookings/{id}:
-    parameters:
-      - $ref: '#/components/parameters/IdPath'
-    get:
-      tags: [Booking]
-      summary: Get booking
-      description: Get a specific booking by id. Accessible by the booking owner or ADMIN.
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Booking'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          description: Forbidden (not booking owner nor ADMIN)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/BookingNotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-    put:
-      tags: [Booking]
-      summary: Update booking
-      description: Update an existing booking. Only the booking owner can update it.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateBookingRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Booking'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          description: Forbidden (not owner of booking)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/BookingNotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /bookings/{id}/status:
-    parameters:
-      - $ref: '#/components/parameters/IdPath'
-    patch:
-      tags: [Booking]
-      summary: Update booking status
-      description: Allows an admin to change the status of a booking (confirm or cancel).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateBookingStatusRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Booking'
-        '400':
-          description: Validation error (invalid status value)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/ForbiddenAdmin'
-        '404':
-          $ref: '#/components/responses/BookingNotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
   /reviews:
     get:
       tags: [Review]
@@ -965,6 +833,13 @@ paths:
             type: integer
             format: int64
           description: ADMIN only; filter reviews by user ID
+        - name: cityId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: ADMIN only; filter reviews by the place city
         - $ref: '#/components/parameters/PageQuery'
         - $ref: '#/components/parameters/SizeQuery'
       responses:
@@ -981,7 +856,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden (userId filter used by non-ADMIN)
+          description: Forbidden (userId or cityId filter used by non-ADMIN)
           content:
             application/json:
               schema:
@@ -1264,12 +1139,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    BookingNotFound:
-      description: Booking not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
     ReviewNotFound:
       description: Review not found
       content:
@@ -1410,7 +1279,7 @@ components:
 
     OfficeRequest:
       type: object
-      required: [cityId, name, address, latitude, longitude]
+      required: [cityId, name, address]
       properties:
         cityId:
           type: integer
@@ -1428,11 +1297,13 @@ components:
           format: double
           minimum: -90
           maximum: 90
+          description: Optional with longitude; when both are omitted, address is geocoded.
         longitude:
           type: number
           format: double
           minimum: -180
           maximum: 180
+          description: Optional with latitude; when both are omitted, address is geocoded.
 
     PlaceType:
       type: object
@@ -1545,7 +1416,7 @@ components:
 
     CreatePlaceRequest:
       type: object
-      required: [cityId, placeTypeId, name, address, latitude, longitude]
+      required: [cityId, placeTypeId, name, address]
       properties:
         cityId:
           type: integer
@@ -1567,17 +1438,36 @@ components:
           format: double
           minimum: -90
           maximum: 90
+          description: Optional with longitude; when both are omitted, address is geocoded.
         longitude:
           type: number
           format: double
           minimum: -180
           maximum: 180
+          description: Optional with latitude; when both are omitted, address is geocoded.
         description:
           type: string
           maxLength: 1000
 
     UpdatePlaceRequest:
       $ref: '#/components/schemas/CreatePlaceRequest'
+
+    GeocodingResult:
+      type: object
+      required: [displayName, latitude, longitude]
+      properties:
+        displayName:
+          type: string
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
 
     HotelDetails:
       type: object
@@ -1618,64 +1508,6 @@ components:
         roomCount:
           type: integer
           minimum: 1
-
-    BookingStatus:
-      type: string
-      enum: [PENDING, CONFIRMED, CANCELLED]
-
-    Booking:
-      type: object
-      required: [id, userId, placeId, checkIn, checkOut, status, createdAt, updatedAt]
-      properties:
-        id:
-          type: integer
-          format: int64
-        userId:
-          type: integer
-          format: int64
-        placeId:
-          type: integer
-          format: int64
-        checkIn:
-          type: string
-          format: date
-        checkOut:
-          type: string
-          format: date
-        status:
-          $ref: '#/components/schemas/BookingStatus'
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    CreateBookingRequest:
-      type: object
-      required: [placeId, checkIn, checkOut]
-      properties:
-        placeId:
-          type: integer
-          format: int64
-          description: Must exist and be of type HOTEL
-        checkIn:
-          type: string
-          format: date
-        checkOut:
-          type: string
-          format: date
-          description: Must be after checkIn
-
-    UpdateBookingRequest:
-      $ref: '#/components/schemas/CreateBookingRequest'
-
-    UpdateBookingStatusRequest:
-      type: object
-      required: [status]
-      properties:
-        status:
-          $ref: '#/components/schemas/BookingStatus'
 
     Review:
       type: object

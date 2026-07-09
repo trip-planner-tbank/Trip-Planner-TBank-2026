@@ -220,6 +220,33 @@ Not required
 
 ---
 
+# Geocoding
+
+## Search address
+
+```http
+GET /geocoding/search?q=Rudaki%20Avenue%2C%20Dushanbe
+```
+
+Returns the best matching WGS84 coordinates from the configured Nominatim service:
+
+```json
+{
+  "displayName": "Rudaki Avenue, Dushanbe, Tajikistan",
+  "latitude": 38.5737,
+  "longitude": 68.7738
+}
+```
+
+JWT is required. The public provider is called with an identifying User-Agent,
+limited to one request per second, and repeated normalized queries are cached.
+
+For office and place create/update requests, `latitude` and `longitude` may both
+be omitted. The backend then geocodes `address + city + country`. If coordinates
+are supplied manually, both fields are required together and Nominatim is not called.
+
+---
+
 # City
 
 ## Create City
@@ -494,8 +521,8 @@ JWT required (ADMIN only)
 | cityId    | required, existing city ID     |
 | name      | required, 1–100 chars          |
 | address   | required, 1–255 chars          |
-| latitude  | required, between -90 and 90   |
-| longitude | required, between -180 and 180 |
+| latitude  | optional with longitude; between -90 and 90 |
+| longitude | optional with latitude; between -180 and 180 |
 
 ### Success Response
 
@@ -670,8 +697,8 @@ JWT required (ADMIN only)
 | cityId    | required, existing city ID     |
 | name      | required, 1–100 chars          |
 | address   | required, 1–255 chars          |
-| latitude  | required, between -90 and 90   |
-| longitude | required, between -180 and 180 |
+| latitude  | optional with longitude; between -90 and 90 |
+| longitude | optional with latitude; between -180 and 180 |
 
 ### Success Response
 
@@ -893,8 +920,8 @@ JWT required
 | placeTypeId | required, existing place type ID; HOTEL type allowed for ADMIN only |
 | name | required, 1–100 chars |
 | address | required, 1–255 chars |
-| latitude | required, between -90 and 90 |
-| longitude | required, between -180 and 180 |
+| latitude | optional with longitude; between -90 and 90 |
+| longitude | optional with latitude; between -180 and 180 |
 | description | optional, max 1000 chars |
 
 ### Success Response
@@ -1097,7 +1124,7 @@ The first item has the smallest `distanceKm` (nearest); the last item has the la
 
 Example — paginated list (`?cityId=1&page=0&size=10`):
 
-Same response shape as other list endpoints in this API (e.g. `GET /bookings`, `GET /reviews`): a JSON array of items for the requested page. Pagination is controlled via query params; the response body does not wrap items in a page object.
+Same response shape as other list endpoints in this API (`GET /reviews`): a JSON array of items for the requested page. Pagination is controlled via query params; the response body does not wrap items in a page object.
 
 ```json
 [
@@ -1276,8 +1303,8 @@ JWT required (ADMIN only)
 | placeTypeId | required, existing place type ID; changing to HOTEL type allowed for ADMIN only |
 | name | required, 1–100 chars |
 | address | required, 1–255 chars |
-| latitude | required, between -90 and 90 |
-| longitude | required, between -180 and 180 |
+| latitude | optional with longitude; between -90 and 90 |
+| longitude | optional with latitude; between -180 and 180 |
 | description | optional, max 1000 chars |
 
 
@@ -1517,296 +1544,7 @@ JWT required (ADMIN only)
 | 500 | Internal server error |
 
 ---
-# Booking
 
-## Create booking
-
-### Endpoint
-```
-POST /bookings
-```
-### Description
-
-Create a new booking for a hotel place. A user can book a hotel for a specific date range.
-
-
-### Request Body
-```
-{
-  "placeId": 10,
-  "checkIn": "2026-07-01",
-  "checkOut": "2026-07-05"
-}
-```
----
-
-### Validation Rules
-
-| Field     | Rules |
-|-----------|------|
-| placeId   | required, must exist, must be HOTEL |
-| checkIn   | required, valid date |
-| checkOut  | required, valid date, must be after checkIn |
-
----
-
-### Success Response
-
-**201 Created**
-```
-{
-  "id": 1,
-  "userId": 3,
-  "placeId": 10,
-  "checkIn": "2026-07-01",
-  "checkOut": "2026-07-05",
-  "status": "PENDING",
-  "createdAt": "2026-06-10T12:00:00Z",
-  "updatedAt": "2026-06-10T12:00:00Z"
-}
-```
----
-
-### Error Responses
-
-| Status | Description |
-|--------|-------------|
-| 400 | Validation error (invalid dates, checkOut before checkIn, or place is not a HOTEL) |
-| 401 | Unauthorized (no JWT token or invalid token) |
-| 404 | Place not found |
-| 500 | Internal server error |
-
----
-
-## Get bookings
-
-### Endpoint
-
-```http
-GET /bookings
-```
-
-### Description
-
-Get a list of bookings. Regular users receive only their own bookings. ADMIN users receive all bookings and can filter by user.
-
-### Authorization
-
-JWT required
-
-### Query Parameters
-
-| Parameter | Rules |
-|-----------|-------|
-| status | optional, one of: PENDING, CONFIRMED, CANCELLED |
-| userId | optional, ADMIN only; filter bookings by user ID |
-| page | optional, zero-based page index (default: 0) |
-| size | optional, page size (default: 20, max: 100) |
-
-### Request Body
-
-No request body.
-
-### Success Response
-
-**200 OK**
-
-```json
-[
-  {
-    "id": 1,
-    "userId": 3,
-    "placeId": 10,
-    "checkIn": "2026-07-01",
-    "checkOut": "2026-07-05",
-    "status": "PENDING",
-    "createdAt": "2026-06-10T12:00:00Z",
-    "updatedAt": "2026-06-10T12:00:00Z"
-  }
-]
-```
-
-### Error Responses
-
-| Status | Description |
-|--------|-------------|
-| 400 | Invalid query parameters |
-| 401 | Unauthorized (no JWT token or invalid token) |
-| 403 | Forbidden (userId filter used by non-ADMIN) |
-| 500 | Internal server error |
-
----
-
-## Get booking
-
-### Endpoint
-
-```http
-GET /bookings/{id}
-```
-
-### Description
-
-Get a specific booking by id. Accessible by the booking owner or ADMIN.
-
-### Authorization
-
-JWT required
-
-### Request Body
-
-No request body.
-
-### Success Response
-
-**200 OK**
-
-```json
-{
-  "id": 1,
-  "userId": 3,
-  "placeId": 10,
-  "checkIn": "2026-07-01",
-  "checkOut": "2026-07-05",
-  "status": "PENDING",
-  "createdAt": "2026-06-10T12:00:00Z",
-  "updatedAt": "2026-06-10T12:00:00Z"
-}
-```
-
-### Error Responses
-
-| Status | Description |
-|--------|-------------|
-| 401 | Unauthorized (no JWT token or invalid token) |
-| 403 | Forbidden (not booking owner nor ADMIN) |
-| 404 | Booking not found |
-| 500 | Internal server error |
-
----
-## Update booking
-
-### Endpoint
-
-PUT /bookings/{id}
-
-### Description
-
-Update an existing booking (dates or place change if needed).
-
----
-
-### Authorization
-
-JWT required
-
----
-
-### Request Body
-
-{
-  "placeId": 10,
-  "checkIn": "2026-07-02",
-  "checkOut": "2026-07-06"
-}
-
----
-
-### Validation Rules
-
-| Field     | Rules |
-|-----------|------|
-| placeId   | required, must exist, must be HOTEL |
-| checkIn   | required, valid date |
-| checkOut  | required, valid date, must be after checkIn |
-
----
-
-### Success Response
-
-**200 OK**
-```
-{
-  "id": 1,
-  "userId": 3,
-  "placeId": 10,
-  "checkIn": "2026-07-02",
-  "checkOut": "2026-07-06",
-  "status": "PENDING",
-  "createdAt": "2026-06-10T12:00:00Z",
-  "updatedAt": "2026-06-10T12:00:00Z"
-}
-```
----
-
-### Error Responses
-
-| Status | Description |
-|--------|-------------|
-| 400 | Validation error |
-| 401 | Unauthorized (no JWT token or invalid token) |
-| 403 | Forbidden (not owner of booking) |
-| 404 | Booking not found |
-| 500 | Internal server error |
-
----
-
-## Update booking status (Admin)
-
-### Endpoint
-```
-PATCH /bookings/{id}/status
-```
-### Description
-
-Allows an admin to change the status of a booking.
-Used for confirming or cancelling bookings.
-
-
-
-### Request Body
-```
-{
-  "status": "CONFIRMED"
-}
-```
-
-### Validation Rules
-
-| Field  | Rules |
-|--------|------|
-| status | required, one of: PENDING, CONFIRMED, CANCELLED |
-
----
-
-### Success Response
-
-**200 OK**
-```
-{
-  "id": 1,
-  "userId": 3,
-  "placeId": 10,
-  "checkIn": "2026-07-01",
-  "checkOut": "2026-07-05",
-  "status": "CONFIRMED",
-  "createdAt": "2026-06-10T12:00:00Z",
-  "updatedAt": "2026-06-10T12:30:00Z"
-}
-```
----
-
-### Error Responses
-
-| Status | Description |
-|--------|-------------|
-| 400 | Validation error (invalid status value) |
-| 401 | Unauthorized (no JWT token or invalid token) |
-| 403 | Forbidden (not ADMIN) |
-| 404 | Booking not found |
-| 500 | Internal server error |
-
----
 # Review
 
 ## Create review
@@ -1885,6 +1623,7 @@ JWT required
 |-----------|-------|
 | placeId | optional, filter reviews by place ID |
 | userId | optional, filter reviews by user ID (ADMIN only) |
+| cityId | optional, filter reviews by place city ID (ADMIN only) |
 | page | optional, zero-based page index (default: 0) |
 | size | optional, page size (default: 20, max: 100) |
 
@@ -1923,8 +1662,8 @@ No request body.
 |--------|-------------|
 | 400 | Invalid query parameters |
 | 401 | Unauthorized (no JWT token or invalid token) |
-| 403 | Forbidden (userId filter used by non-ADMIN) |
-| 404 | Place not found (if placeId is provided but does not exist) |
+| 403 | Forbidden (userId or cityId filter used by non-ADMIN) |
+| 404 | Place or city not found when the corresponding filter is provided |
 | 500 | Internal server error |
 
 ---
@@ -2159,5 +1898,3 @@ No response body.
 | 403 | Forbidden (not wishlist entry owner) |
 | 404 | Wishlist entry not found |
 | 500 | Internal server error |
-
-
