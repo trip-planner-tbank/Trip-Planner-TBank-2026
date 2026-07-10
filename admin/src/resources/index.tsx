@@ -4,6 +4,7 @@ import HotelIcon from "@mui/icons-material/Hotel";
 import LocationCityIcon from "@mui/icons-material/LocationCity";
 import PlaceIcon from "@mui/icons-material/Place";
 import RateReviewIcon from "@mui/icons-material/RateReview";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import type { ResourceProps } from "react-admin";
 
 import { CityCreate, CityEdit, CityList, CityShow } from "../features/cities";
@@ -32,8 +33,17 @@ import {
   ReviewList,
   ReviewShow,
 } from "../features/reviews";
+import { WishlistCreate, WishlistList } from "../features/wishlist";
 
 export const resources: ResourceProps[] = [
+  {
+    name: "wishlists",
+    options: { label: "My wishlist" },
+    list: WishlistList,
+    create: WishlistCreate,
+    icon: FavoriteIcon,
+    recordRepresentation: "place.name",
+  },
   {
     name: "cities",
     list: CityList,

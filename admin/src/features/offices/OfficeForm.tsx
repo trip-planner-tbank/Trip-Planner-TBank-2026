@@ -20,11 +20,13 @@ export function OfficeForm() {
       <TextInput source="address" validate={[required(), maxLength(255)]} />
       <NumberInput
         source="latitude"
-        validate={[required(), minValue(-90), maxValue(90)]}
+        helperText="Optional. Leave both coordinates empty to geocode the address automatically."
+        validate={[minValue(-90), maxValue(90)]}
       />
       <NumberInput
         source="longitude"
-        validate={[required(), minValue(-180), maxValue(180)]}
+        helperText="Optional. Latitude and longitude must be supplied together."
+        validate={[minValue(-180), maxValue(180)]}
       />
     </SimpleForm>
   );

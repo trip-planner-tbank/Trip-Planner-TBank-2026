@@ -52,4 +52,24 @@ export interface Place {
   isActive: boolean;
   avgRating: number;
   createdAt: string;
+  distanceKm?: number;
+}
+
+export interface WishlistEntry {
+  id: number;
+  userId: number;
+  placeId: number;
+  addedAt: string;
+  place: Pick<
+    Place,
+    | "id"
+    | "cityId"
+    | "placeTypeId"
+    | "name"
+    | "address"
+    | "latitude"
+    | "longitude"
+    | "avgRating"
+    | "isActive"
+  >;
 }

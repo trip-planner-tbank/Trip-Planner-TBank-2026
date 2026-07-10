@@ -1,37 +1,50 @@
 import {
-  AutocompleteInput,
   NumberInput,
   ReferenceInput,
+  SelectInput,
   SimpleForm,
   TextInput,
   maxLength,
   maxValue,
   minValue,
   required,
+  useGetList,
+  usePermissions,
 } from "react-admin";
 
 export function PlaceForm() {
+  const { permissions } = usePermissions();
+  const { data: placeTypes = [], isPending } = useGetList("place-types", {
+    pagination: { page: 1, perPage: 100 },
+  });
+  const choices = permissions === "ADMIN"
+    ? placeTypes
+    : placeTypes.filter((type) => type.code !== "HOTEL");
+
   return (
     <SimpleForm>
       <TextInput source="name" validate={[required(), maxLength(100)]} />
       <TextInput source="address" validate={[required(), maxLength(255)]} />
       <ReferenceInput source="cityId" reference="cities" label="City">
-        <AutocompleteInput optionText="name" validate={required()} />
+        <SelectInput optionText="name" validate={required()} />
       </ReferenceInput>
-      <ReferenceInput
+      <SelectInput
         source="placeTypeId"
-        reference="place-types"
         label="Place type"
-      >
-        <AutocompleteInput optionText="name" validate={required()} />
-      </ReferenceInput>
+        choices={choices}
+        optionText="name"
+        disabled={isPending}
+        validate={required()}
+      />
       <NumberInput
         source="latitude"
-        validate={[required(), minValue(-90), maxValue(90)]}
+        helperText="Optional. Leave both coordinates empty to geocode the address automatically."
+        validate={[minValue(-90), maxValue(90)]}
       />
       <NumberInput
         source="longitude"
-        validate={[required(), minValue(-180), maxValue(180)]}
+        helperText="Optional. Latitude and longitude must be supplied together."
+        validate={[minValue(-180), maxValue(180)]}
       />
       <TextInput
         source="description"

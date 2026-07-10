@@ -5,9 +5,11 @@ import {
   List,
   ShowButton,
   TextField,
+  usePermissions,
 } from "react-admin";
 
 export function CityList() {
+  const { permissions } = usePermissions();
   return (
     <List>
       <Datagrid rowClick="show">
@@ -16,7 +18,7 @@ export function CityList() {
         <TextField source="country" />
         <DateField source="createdAt" showTime />
         <ShowButton />
-        <EditButton />
+        {permissions === "ADMIN" && <EditButton />}
       </Datagrid>
     </List>
   );

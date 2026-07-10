@@ -2,10 +2,13 @@ package com.tripplanner.backend.controller;
 
 import com.tripplanner.backend.domain.Office;
 import com.tripplanner.backend.dto.office.OfficeRequest;
+import com.tripplanner.backend.dto.place.PlaceWithDistanceResponse;
+import com.tripplanner.backend.service.PlaceService;
 import com.tripplanner.backend.service.OfficeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +22,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/offices")
 @RequiredArgsConstructor
 @Tag(name = "Office")
+@Validated
 public class OfficeController {
 
     private final OfficeService officeService;
+    private final PlaceService placeService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -55,5 +61,13 @@ public class OfficeController {
     public ResponseEntity<Void> deleteOffice(@PathVariable Long id) {
         officeService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/nearby-places")
+    public ResponseEntity<List<PlaceWithDistanceResponse>> getNearbyPlaces(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long placeTypeId,
+            @RequestParam(required = false) @DecimalMin("0.0") Double maxDistanceKm) {
+        return ResponseEntity.ok(placeService.nearbyOffice(id, placeTypeId, maxDistanceKm));
     }
 }

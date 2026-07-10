@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.hibernate.validator.constraints.URL;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class CreateHotelDetailsRequest {
 
     private String phone;
 
+    @URL(message = "website must be a valid URL")
     private String website;
 
     @NotNull(message = "roomCount is required")

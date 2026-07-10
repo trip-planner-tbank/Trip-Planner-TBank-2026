@@ -17,10 +17,13 @@ spring:
     validate-on-migrate: false
 
 app:
+  geocoding:
+    base-url: ${NOMINATIM_BASE_URL:https://nominatim.openstreetmap.org}
+    user-agent: ${NOMINATIM_USER_AGENT:TripPlanner-TBank/1.0}
   admin:
-    username: ${ADMIN_USERNAME:admin}
-    email: ${ADMIN_EMAIL:admin@example.com}
-    password: ${ADMIN_PASSWORD:Admin12345}
+    username: ${ADMIN_USERNAME:user1}
+    email: ${ADMIN_EMAIL:user1@example.com}
+    password: ${ADMIN_PASSWORD:Qwer123!}
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-to-a-long-random-value}
     access-token-seconds: ${JWT_ACCESS_TOKEN_SECONDS:900}
