@@ -17,55 +17,15 @@ export async function fetchPlaceTypes(): Promise<PlaceType[]> {
   return json as PlaceType[];
 }
 
-function toRad(degrees: number): number {
-  return (degrees * Math.PI) / 180;
-}
-
-function haversineKm(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function applyClientSideFilters(
-  places: Place[],
-  origin: { latitude: number; longitude: number },
-  placeTypeId: number | null,
-  maxDistanceKm: number | null,
-): Place[] {
-  const withDistance = places.map((place) => ({
-    ...place,
-    distanceKm: haversineKm(
-      origin.latitude,
-      origin.longitude,
-      place.latitude,
-      place.longitude,
-    ),
-  }));
-
-  let filtered = withDistance;
-  if (placeTypeId !== null) {
-    filtered = filtered.filter((place) => place.placeTypeId === placeTypeId);
-  }
-  if (maxDistanceKm !== null) {
-    filtered = filtered.filter(
-      (place) => (place.distanceKm ?? Infinity) <= maxDistanceKm,
-    );
-  }
-  return sortPlacesByDistance(filtered);
+function buildQueryString(params: Record<string, string | number | null>) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
 }
 
 export async function fetchOfficeNearbyPlaces(
@@ -73,9 +33,13 @@ export async function fetchOfficeNearbyPlaces(
   placeTypeId: number | null,
   maxDistanceKm: number | null,
 ): Promise<Place[]> {
-  const { json } = await httpClient(`${API_URL}/places`);
-  const places = json as Place[];
-  return applyClientSideFilters(places, office, placeTypeId, maxDistanceKm);
+  const query = buildQueryString({
+    officeId: office.id,
+    placeTypeId,
+    maxDistanceKm,
+  });
+  const { json } = await httpClient(`${API_URL}/places${query}`);
+  return json as Place[];
 }
 
 export async function fetchPlaceNearbyPlaces(
@@ -83,18 +47,10 @@ export async function fetchPlaceNearbyPlaces(
   placeTypeId: number | null,
   maxDistanceKm: number | null,
 ): Promise<Place[]> {
-  // Fetch the origin place and all places, then compute distances client-side.
-  const [{ json: originJson }, { json: allJson }] = await Promise.all([
-    httpClient(`${API_URL}/places/${placeId}`),
-    httpClient(`${API_URL}/places`),
-  ]);
-  const origin = originJson as Place;
-  const places = allJson as Place[];
-  return applyClientSideFilters(places, origin, placeTypeId, maxDistanceKm);
-}
-
-function sortPlacesByDistance(places: Place[]): Place[] {
-  return [...places].sort(
-    (a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
-  );
+  const query = buildQueryString({
+    placeTypeId,
+    maxDistanceKm,
+  });
+  const { json } = await httpClient(`${API_URL}/places/${placeId}/nearby-places${query}`);
+  return json as Place[];
 }

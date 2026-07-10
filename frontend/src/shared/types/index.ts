@@ -53,19 +53,6 @@ export interface HotelDetails {
   roomCount: number;
 }
 
-export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
-
-export interface Booking {
-  id: number;
-  userId: number;
-  placeId: number;
-  checkIn: string;
-  checkOut: string;
-  status: BookingStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Review {
   id: number;
   userId: number;
@@ -105,12 +92,6 @@ export interface CreatePlaceRequest {
   description?: string;
 }
 
-export interface CreateBookingRequest {
-  placeId: number;
-  checkIn: string;
-  checkOut: string;
-}
-
 export interface CreateReviewRequest {
   placeId: number;
   rating: number;
@@ -125,3 +106,4 @@ export interface UpdateReviewRequest {
 export interface CreateWishlistRequest {
   placeId: number;
 }
+

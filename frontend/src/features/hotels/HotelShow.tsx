@@ -22,7 +22,6 @@ import {
 import { httpClient } from "../../shared/api/httpClient";
 import { API_URL } from "../../shared/config/env";
 import type { HotelDetails, Place } from "../../shared/types";
-import { BookingForm } from "./BookingForm";
 import { ShowWishlistAction } from "../wishlist/ShowWishlistAction";
 
 function HotelDetailsPanel() {
@@ -131,9 +130,6 @@ export function HotelShow() {
         </Tab>
         <Tab label="Nearby places">
           <NearbyPlacesTab />
-        </Tab>
-        <Tab label="Book">
-          <BookingForm />
         </Tab>
       </TabbedShowLayout>
     </Show>

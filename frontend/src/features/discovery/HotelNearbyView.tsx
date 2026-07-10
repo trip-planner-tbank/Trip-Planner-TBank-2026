@@ -83,7 +83,6 @@ export function HotelNearbyView({
               key={place.id}
               place={place}
               placeTypeName={placeType?.name}
-              isHotel={placeType?.code === "HOTEL"}
               onDetails={() => {}}
             />
           );

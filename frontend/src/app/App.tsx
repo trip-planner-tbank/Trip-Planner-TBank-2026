@@ -7,7 +7,6 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { DiscoveryDashboard } from "../features/discovery/DiscoveryDashboard";
 import { placesResource } from "../features/places";
 import { hotelsResource } from "../features/hotels";
-import { bookingsResource } from "../features/bookings";
 import { wishlistsResource } from "../features/wishlist";
 import { reviewsResource } from "../features/reviews";
 
@@ -24,7 +23,6 @@ export function App() {
     >
       <Resource {...placesResource} />
       <Resource {...hotelsResource} />
-      <Resource {...bookingsResource} />
       <Resource {...wishlistsResource} />
       <Resource {...reviewsResource} />
     </Admin>

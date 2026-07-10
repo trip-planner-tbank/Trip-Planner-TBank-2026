@@ -13,17 +13,13 @@ import { AddToWishlistButton } from "../wishlist/AddToWishlistButton";
 interface NearbyPlaceCardProps {
   place: Place;
   placeTypeName?: string;
-  isHotel?: boolean;
   onDetails: () => void;
-  onBook?: () => void;
 }
 
 export function NearbyPlaceCard({
   place,
   placeTypeName,
-  isHotel,
   onDetails,
-  onBook,
 }: NearbyPlaceCardProps) {
   return (
     <Card variant="outlined">
@@ -53,11 +49,6 @@ export function NearbyPlaceCard({
           Details
         </Button>
         <AddToWishlistButton placeId={place.id} size="small" />
-        {isHotel && onBook && (
-          <Button size="small" variant="contained" onClick={onBook}>
-            Book
-          </Button>
-        )}
       </CardActions>
     </Card>
   );

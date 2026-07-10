@@ -192,15 +192,12 @@ export function DiscoveryDashboard() {
         <Stack spacing={2}>
           {nearbyPlaces.map((place) => {
             const placeType = placeTypeById.get(place.placeTypeId);
-            const isHotel = placeType?.code === "HOTEL";
             return (
               <NearbyPlaceCard
                 key={place.id}
                 place={place}
                 placeTypeName={placeType?.name}
-                isHotel={isHotel}
                 onDetails={() => handleDetails(place)}
-                onBook={isHotel ? () => {} : undefined}
               />
             );
           })}
