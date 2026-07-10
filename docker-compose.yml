@@ -46,5 +46,16 @@ services:
     ports:
       - "3000:80"
 
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3001:80"
+
 volumes:
   postgres_data:
