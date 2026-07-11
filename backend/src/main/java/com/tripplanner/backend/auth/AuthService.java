@@ -97,6 +97,7 @@ public class AuthService {
     private TokenResponse tokensFor(AppUser user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+        refreshTokenRepository.deleteAllByUser(user);
         refreshTokenRepository.save(new RefreshToken(
                 user,
                 hashToken(refreshToken),
