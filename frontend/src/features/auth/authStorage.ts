@@ -1,5 +1,12 @@
-const ACCESS_TOKEN_KEY = "trip_planner_access_token";
-const REFRESH_TOKEN_KEY = "trip_planner_refresh_token";
+const ACCESS_TOKEN_KEY = "tripPlanner.accessToken";
+const REFRESH_TOKEN_KEY = "tripPlanner.refreshToken";
+
+export type TokenClaims = {
+  sub?: string;
+  uid?: number;
+  role?: "ADMIN" | "USER";
+  exp?: number;
+};
 
 export const authStorage = {
   getAccessToken(): string | null {
@@ -10,9 +17,29 @@ export const authStorage = {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   },
 
-  setTokens(accessToken: string, refreshToken: string): void {
+  getClaims(): TokenClaims | null {
+    const token = this.getAccessToken();
+    if (!token) return null;
+    try {
+      const payload = token.split(".")[1];
+      return JSON.parse(
+        decodeURIComponent(
+          atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+            .split("")
+            .map((character) => `%${character.charCodeAt(0).toString(16).padStart(2, "0")}`)
+            .join(""),
+        ),
+      ) as TokenClaims;
+    } catch {
+      return null;
+    }
+  },
+
+  setTokens(accessToken: string, refreshToken?: string): void {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
   },
 
   clear(): void {

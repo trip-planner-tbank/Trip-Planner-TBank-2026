@@ -7,33 +7,33 @@ import RateReviewIcon from "@mui/icons-material/RateReview";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import type { ResourceProps } from "react-admin";
 
-import { CityCreate, CityEdit, CityList, CityShow } from "../features/cities";
+import { CityCreate, CityEdit, CityList, CityShow } from "./cities";
 import {
   HotelCreate,
   HotelDetailsEdit,
   HotelList,
   HotelShow,
-} from "../features/hotels";
+} from "./hotels";
 import {
   OfficeCreate,
   OfficeEdit,
   OfficeList,
   OfficeShow,
-} from "../features/offices";
+} from "./offices";
 import {
   PlaceCreate,
   PlaceEdit,
   PlaceList,
   PlaceShow,
-} from "../features/places";
-import { PlaceTypeList } from "../features/placeTypes";
+} from "./places";
+import { PlaceTypeList } from "./placeTypes";
 import {
   ReviewCreate,
   ReviewEdit,
   ReviewList,
   ReviewShow,
-} from "../features/reviews";
-import { WishlistCreate, WishlistList } from "../features/wishlist";
+} from "./reviews";
+import { WishlistCreate, WishlistList } from "./wishlist";
 
 export const resources: ResourceProps[] = [
   {

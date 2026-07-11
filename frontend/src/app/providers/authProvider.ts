@@ -1,9 +1,8 @@
 import type { AuthProvider } from "react-admin";
 
+import { authStorage } from "../../features/auth/authStorage";
 import { API_URL } from "../../shared/config/env";
 import { httpClient } from "../../shared/api/httpClient";
-import { authStorage } from "../../features/auth/authStorage";
-import type { TokenResponse } from "../../shared/types";
 
 interface LoginCredentials {
   username: string;
@@ -16,31 +15,6 @@ interface SignupCredentials {
   password: string;
 }
 
-interface JwtPayload {
-  sub?: string;
-  username?: string;
-  role?: string;
-  permissions?: string[];
-  exp?: number;
-}
-
-const decodeJwt = (token: string): JwtPayload | null => {
-  try {
-    const base64 = token.split(".")[1];
-    if (!base64) return null;
-    const json = atob(base64.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(json) as JwtPayload;
-  } catch {
-    return null;
-  }
-};
-
-const isTokenExpired = (token: string): boolean => {
-  const payload = decodeJwt(token);
-  if (!payload?.exp) return false;
-  return payload.exp * 1000 < Date.now();
-};
-
 export const authProvider: AuthProvider & { signup: (params: SignupCredentials) => Promise<void> } = {
   login: async ({ username, password }: LoginCredentials) => {
     const { json } = await httpClient(`${API_URL}/auth/login`, {
@@ -48,8 +22,8 @@ export const authProvider: AuthProvider & { signup: (params: SignupCredentials) 
       body: JSON.stringify({ username, password }),
     });
 
-    const tokenResponse = json as TokenResponse;
-    if (!tokenResponse.accessToken || !tokenResponse.refreshToken) {
+    const tokenResponse = json as { accessToken: string; refreshToken?: string };
+    if (!tokenResponse.accessToken) {
       throw new Error("Invalid response from server");
     }
 
@@ -75,7 +49,11 @@ export const authProvider: AuthProvider & { signup: (params: SignupCredentials) 
 
   checkAuth: async () => {
     const accessToken = authStorage.getAccessToken();
-    if (!accessToken || isTokenExpired(accessToken)) {
+    if (!accessToken) {
+      throw new Error("Unauthorized");
+    }
+    const claims = authStorage.getClaims();
+    if (claims?.exp && claims.exp * 1000 < Date.now()) {
       authStorage.clear();
       throw new Error("Unauthorized");
     }
@@ -90,26 +68,22 @@ export const authProvider: AuthProvider & { signup: (params: SignupCredentials) 
   },
 
   getIdentity: async () => {
-    const accessToken = authStorage.getAccessToken();
-    if (!accessToken) {
+    const claims = authStorage.getClaims();
+    if (!claims) {
       throw new Error("Unauthorized");
     }
-
-    const payload = decodeJwt(accessToken);
-    const id = payload?.sub ?? payload?.username ?? "unknown";
-    const fullName = payload?.username ?? id;
-
-    return { id, fullName };
+    return {
+      id: String(claims.uid ?? claims.sub ?? "unknown"),
+      fullName: claims.sub ?? "Trip Planner User",
+    };
   },
 
   getPermissions: async () => {
-    const accessToken = authStorage.getAccessToken();
-    if (!accessToken) {
+    const claims = authStorage.getClaims();
+    if (!claims) {
       throw new Error("Unauthorized");
     }
-
-    const payload = decodeJwt(accessToken);
-    return payload?.permissions ?? (payload?.role ? [payload.role] : []);
+    return claims.role ?? "USER";
   },
 
   signup: async ({ username, email, password }: SignupCredentials) => {

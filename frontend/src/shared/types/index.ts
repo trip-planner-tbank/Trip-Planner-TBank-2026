@@ -106,4 +106,3 @@ export interface UpdateReviewRequest {
 export interface CreateWishlistRequest {
   placeId: number;
 }
-

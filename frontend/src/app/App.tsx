@@ -4,9 +4,10 @@ import { authProvider } from "./providers/authProvider";
 import { dataProvider } from "./providers/dataProvider";
 import { appTheme } from "./providers/theme";
 import { LoginPage } from "../features/auth/LoginPage";
-import { DiscoveryDashboard } from "../features/discovery/DiscoveryDashboard";
-import { placesResource } from "../features/places";
-import { hotelsResource } from "../features/hotels";
+import { RoleBasedDashboard } from "./RoleBasedDashboard";
+import { resources as adminResources } from "../features/admin/resources";
+import { placesResource as userPlacesResource } from "../features/userPlaces";
+import { hotelsResource as userHotelsResource } from "../features/userHotels";
 import { wishlistsResource } from "../features/wishlist";
 import { reviewsResource } from "../features/reviews";
 
@@ -18,13 +19,27 @@ export function App() {
       dataProvider={dataProvider}
       theme={appTheme}
       loginPage={LoginPage}
-      dashboard={DiscoveryDashboard}
+      dashboard={RoleBasedDashboard}
       requireAuth
     >
-      <Resource {...placesResource} />
-      <Resource {...hotelsResource} />
-      <Resource {...wishlistsResource} />
-      <Resource {...reviewsResource} />
+      {(permissions) => {
+        const isAdmin = permissions === "ADMIN";
+
+        if (isAdmin) {
+          return adminResources.map((resource) => (
+            <Resource key={resource.name} {...resource} />
+          ));
+        }
+
+        return (
+          <>
+            <Resource {...userPlacesResource} />
+            <Resource {...userHotelsResource} />
+            <Resource {...wishlistsResource} />
+            <Resource {...reviewsResource} />
+          </>
+        );
+      }}
     </Admin>
   );
 }
