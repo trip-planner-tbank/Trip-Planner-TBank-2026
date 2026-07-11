@@ -1,4 +1,5 @@
 import type { ResourceProps } from "react-admin";
+import PlaceIcon from "@mui/icons-material/Place";
 
 import { PlaceCreate } from "./PlaceCreate";
 import { PlaceList } from "./PlaceList";
@@ -9,5 +10,6 @@ export const placesResource: ResourceProps = {
   list: PlaceList,
   show: PlaceShow,
   create: PlaceCreate,
+  icon: PlaceIcon,
   recordRepresentation: "name",
 };

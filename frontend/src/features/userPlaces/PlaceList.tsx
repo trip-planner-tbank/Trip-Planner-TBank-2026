@@ -27,7 +27,7 @@ const placeFilters: ReactElement[] = [
 export function PlaceList() {
   return (
     <List filters={placeFilters}>
-      <Datagrid rowClick="show">
+      <Datagrid rowClick="show" bulkActionButtons={false}>
         <TextField source="name" />
         <ReferenceField
           source="placeTypeId"

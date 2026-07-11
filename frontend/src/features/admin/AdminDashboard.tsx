@@ -2,12 +2,26 @@ import {
   Card,
   CardContent,
   Grid,
+  Stack,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
+import BusinessIcon from "@mui/icons-material/Business";
+import PlaceIcon from "@mui/icons-material/Place";
+import RateReviewIcon from "@mui/icons-material/RateReview";
+import HotelIcon from "@mui/icons-material/Hotel";
 
 import { httpClient } from "../../shared/api/httpClient";
 import { API_URL } from "../../shared/config/env";
+
+const statConfig = [
+  { key: "cities", label: "Cities", icon: LocationCityIcon, color: "#3f51b5" },
+  { key: "offices", label: "Offices", icon: BusinessIcon, color: "#009688" },
+  { key: "places", label: "Places", icon: PlaceIcon, color: "#ff9800" },
+  { key: "reviews", label: "Reviews", icon: RateReviewIcon, color: "#e91e63" },
+  { key: "hotels", label: "Hotels", icon: HotelIcon, color: "#795548" },
+];
 
 export function AdminDashboard() {
   const [counts, setCounts] = useState({
@@ -21,13 +35,14 @@ export function AdminDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const [citiesRes, officesRes, reviewsRes, placesRes, typesRes] = await Promise.all([
-          httpClient(`${API_URL}/cities`),
-          httpClient(`${API_URL}/offices`),
-          httpClient(`${API_URL}/reviews`),
-          httpClient(`${API_URL}/places`),
-          httpClient(`${API_URL}/place-types`),
-        ]);
+        const [citiesRes, officesRes, reviewsRes, placesRes, typesRes] =
+          await Promise.all([
+            httpClient(`${API_URL}/cities`),
+            httpClient(`${API_URL}/offices`),
+            httpClient(`${API_URL}/reviews`),
+            httpClient(`${API_URL}/places`),
+            httpClient(`${API_URL}/place-types`),
+          ]);
 
         const cities = Array.isArray(citiesRes.json)
           ? (citiesRes.json as unknown[])
@@ -78,46 +93,31 @@ export function AdminDashboard() {
         </Typography>
 
         <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography color="text.secondary">Cities</Typography>
-                <Typography variant="h4">{counts.cities}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography color="text.secondary">Offices</Typography>
-                <Typography variant="h4">{counts.offices}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography color="text.secondary">Places</Typography>
-                <Typography variant="h4">{counts.places}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography color="text.secondary">Reviews</Typography>
-                <Typography variant="h4">{counts.reviews}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography color="text.secondary">Hotels</Typography>
-                <Typography variant="h4">{counts.hotels}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+          {statConfig.map((stat) => {
+            const Icon = stat.icon;
+            const value = counts[stat.key as keyof typeof counts];
+            return (
+              <Grid key={stat.key} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <Card variant="outlined" sx={{ borderRadius: 2, height: "100%" }}>
+                  <CardContent>
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                    >
+                      <Icon sx={{ fontSize: 40, color: stat.color }} />
+                      <Stack>
+                        <Typography color="text.secondary" variant="body2">
+                          {stat.label}
+                        </Typography>
+                        <Typography variant="h4">{value}</Typography>
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       </CardContent>
     </Card>

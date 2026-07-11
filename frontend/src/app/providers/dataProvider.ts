@@ -1,6 +1,7 @@
 import simpleRestProvider from "ra-data-simple-rest";
 import type { DataProvider } from "react-admin";
 
+import { authStorage } from "../../features/auth/authStorage";
 import { httpClient } from "../../shared/api/httpClient";
 import { API_URL } from "../../shared/config/env";
 import type { HotelDetails, Place } from "../../shared/types";
@@ -63,7 +64,12 @@ export const dataProvider: DataProvider = {
         }
       }
 
-      const { json } = await httpClient(`${url}?${query.toString()}`);
+      const isAdmin = authStorage.getClaims()?.role === "ADMIN";
+      const listUrl = resource === "reviews" && !isAdmin
+        ? `${API_URL}/reviews/me?${query.toString()}`
+        : `${url}?${query.toString()}`;
+
+      const { json } = await httpClient(listUrl);
 
       if (Array.isArray(json)) {
         return { data: json, total: json.length };

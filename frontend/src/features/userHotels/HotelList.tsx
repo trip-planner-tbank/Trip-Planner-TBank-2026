@@ -17,7 +17,7 @@ export function HotelList() {
       filterDefaultValues={{ placeTypeId: 1 }}
       title="Hotels"
     >
-      <Datagrid rowClick="show">
+      <Datagrid rowClick="show" bulkActionButtons={false}>
         <TextField source="name" />
         <TextField source="address" />
         <TextField source="avgRating" />

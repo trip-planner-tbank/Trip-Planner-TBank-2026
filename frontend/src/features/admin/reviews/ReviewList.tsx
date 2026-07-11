@@ -35,7 +35,7 @@ export function ReviewList() {
     >
       <Datagrid rowClick="show">
         <TextField source="id" />
-        <TextField source="userId" />
+        <TextField source="userId" label="User ID" />
         <ReferenceField source="placeId" reference="places" link="show">
           <TextField source="name" />
         </ReferenceField>

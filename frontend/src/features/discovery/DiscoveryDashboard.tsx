@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Grid, Paper, Stack, Typography } from "@mui/material";
+import ExploreIcon from "@mui/icons-material/Explore";
 
 import { City, Office, Place, PlaceType } from "../../shared/types";
 import {
@@ -65,7 +66,9 @@ export function DiscoveryDashboard() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load place types");
+          setError(
+            err instanceof Error ? err.message : "Failed to load place types",
+          );
         }
       });
     return () => {
@@ -88,7 +91,9 @@ export function DiscoveryDashboard() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load offices");
+          setError(
+            err instanceof Error ? err.message : "Failed to load offices",
+          );
         }
       })
       .finally(() => {
@@ -159,49 +164,74 @@ export function DiscoveryDashboard() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Discovery
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+        <ExploreIcon color="primary" fontSize="large" />
+        <Typography variant="h4">Discovery</Typography>
+      </Stack>
+
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
       )}
-      <Stack spacing={3}>
-        <CitySelector
-          cities={cities}
-          selectedCity={selectedCity}
-          onSelect={handleCitySelect}
-          loading={loadingCities}
-        />
-        <OfficeSelector
-          offices={offices}
-          selectedOffice={selectedOffice}
-          onSelect={setSelectedOffice}
-          disabled={!selectedCity || offices.length === 0}
-          loading={loadingOffices}
-        />
-        <PlaceFilters
-          placeTypes={placeTypes}
-          selectedPlaceTypeId={selectedPlaceTypeId}
-          onPlaceTypeChange={setSelectedPlaceTypeId}
-          selectedRadiusKm={selectedRadiusKm}
-          onRadiusChange={setSelectedRadiusKm}
-        />
-        {loadingPlaces && <Typography>Loading nearby places...</Typography>}
-        <Stack spacing={2}>
-          {nearbyPlaces.map((place) => {
-            const placeType = placeTypeById.get(place.placeTypeId);
-            return (
-              <NearbyPlaceCard
-                key={place.id}
-                place={place}
-                placeTypeName={placeType?.name}
-                onDetails={() => handleDetails(place)}
-              />
-            );
-          })}
-        </Stack>
+
+      <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <CitySelector
+              cities={cities}
+              selectedCity={selectedCity}
+              onSelect={handleCitySelect}
+              loading={loadingCities}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <OfficeSelector
+              offices={offices}
+              selectedOffice={selectedOffice}
+              onSelect={setSelectedOffice}
+              disabled={!selectedCity || offices.length === 0}
+              loading={loadingOffices}
+            />
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <PlaceFilters
+              placeTypes={placeTypes}
+              selectedPlaceTypeId={selectedPlaceTypeId}
+              onPlaceTypeChange={setSelectedPlaceTypeId}
+              selectedRadiusKm={selectedRadiusKm}
+              onRadiusChange={setSelectedRadiusKm}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {selectedOffice && (
+        <Typography variant="h6" gutterBottom>
+          Places near {selectedOffice.name}
+        </Typography>
+      )}
+
+      {loadingPlaces && <Typography>Loading nearby places…</Typography>}
+
+      {!loadingPlaces && selectedOffice && nearbyPlaces.length === 0 && (
+        <Typography color="text.secondary">
+          No places found for the selected filters.
+        </Typography>
+      )}
+
+      <Stack spacing={2}>
+        {nearbyPlaces.map((place) => {
+          const placeType = placeTypeById.get(place.placeTypeId);
+          return (
+            <NearbyPlaceCard
+              key={place.id}
+              place={place}
+              placeTypeName={placeType?.name}
+              onDetails={() => handleDetails(place)}
+            />
+          );
+        })}
       </Stack>
     </Box>
   );
