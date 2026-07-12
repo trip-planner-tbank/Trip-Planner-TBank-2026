@@ -21,11 +21,12 @@ export function AdminDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const [citiesRes, officesRes, reviewsRes, placesRes] = await Promise.all([
+        const [citiesRes, officesRes, reviewsRes, placesRes, typesRes] = await Promise.all([
           httpClient(`${API_URL}/cities`),
           httpClient(`${API_URL}/offices`),
           httpClient(`${API_URL}/reviews`),
           httpClient(`${API_URL}/places`),
+          httpClient(`${API_URL}/place-types`),
         ]);
 
         const cities = Array.isArray(citiesRes.json)
@@ -44,13 +45,20 @@ export function AdminDashboard() {
           : Array.isArray(placesRes.json)
             ? (placesRes.json as { placeTypeId: number }[])
             : [];
+        const hotelType = Array.isArray(typesRes.json)
+          ? (typesRes.json as { id: number; code: string }[]).find(
+              (type) => type.code === "HOTEL",
+            )
+          : undefined;
 
         setCounts({
           cities: cities.length,
           offices: offices.length,
           places: places.length,
           reviews: reviews.length,
-          hotels: places.filter((p) => p.placeTypeId === 1).length,
+          hotels: hotelType
+            ? places.filter((place) => place.placeTypeId === hotelType.id).length
+            : 0,
         });
       } catch {
         // ignore

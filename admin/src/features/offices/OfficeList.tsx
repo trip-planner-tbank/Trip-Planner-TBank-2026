@@ -7,9 +7,11 @@ import {
   ReferenceField,
   ShowButton,
   TextField,
+  usePermissions,
 } from "react-admin";
 
 export function OfficeList() {
+  const { permissions } = usePermissions();
   return (
     <List>
       <Datagrid rowClick="show">
@@ -28,7 +30,7 @@ export function OfficeList() {
         <NumberField source="longitude" />
         <DateField source="createdAt" showTime />
         <ShowButton />
-        <EditButton />
+        {permissions === "ADMIN" && <EditButton />}
       </Datagrid>
     </List>
   );

@@ -23,6 +23,20 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Page<Review> findByPlaceIdAndUserId(Long placeId, Long userId, Pageable pageable);
 
+    @Query("""
+            SELECT r FROM Review r
+            WHERE (:placeId IS NULL OR r.placeId = :placeId)
+              AND (:userId IS NULL OR r.userId = :userId)
+              AND (:cityId IS NULL OR r.placeId IN (
+                  SELECT p.id FROM Place p WHERE p.cityId = :cityId
+              ))
+            """)
+    Page<Review> findFiltered(
+            @Param("placeId") Long placeId,
+            @Param("userId") Long userId,
+            @Param("cityId") Long cityId,
+            Pageable pageable);
+
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.placeId = :placeId")
     Double calculateAverageRatingByPlaceId(@Param("placeId") Long placeId);
 

@@ -7,24 +7,38 @@ import type { HotelDetails, Place } from "../../shared/types";
 
 const baseProvider = simpleRestProvider(API_URL, httpClient);
 
-const HOTEL_PLACE_TYPE_ID = 1;
 const ARRAY_LIST_RESOURCES = new Set([
   "cities",
   "offices",
   "place-types",
   "places",
   "reviews",
+  "wishlists",
 ]);
+
+let hotelPlaceTypeId: number | undefined;
+
+async function getHotelPlaceTypeId() {
+  if (hotelPlaceTypeId) return hotelPlaceTypeId;
+  const { json } = await httpClient(`${API_URL}/place-types`);
+  const hotelType = (json as { id: number; code: string }[]).find(
+    (type) => type.code === "HOTEL",
+  );
+  if (!hotelType) throw new Error("HOTEL place type is not configured");
+  hotelPlaceTypeId = hotelType.id;
+  return hotelPlaceTypeId;
+}
 
 export const dataProvider: DataProvider = {
   ...baseProvider,
 
   getList: async (resource, params) => {
     if (resource === "hotels") {
-      const { json } = await httpClient(`${API_URL}/places`);
-      const places = (json as Place[]).filter(
-        (place) => place.placeTypeId === HOTEL_PLACE_TYPE_ID,
+      const typeId = await getHotelPlaceTypeId();
+      const { json } = await httpClient(
+        `${API_URL}/places?placeTypeId=${typeId}&page=0&size=100`,
       );
+      const places = json as Place[];
       return {
         data: places.map((place) => ({ ...place, id: place.id })),
         total: places.length,
@@ -38,8 +52,11 @@ export const dataProvider: DataProvider = {
     if (url) {
       const { page = 1, perPage = 25 } = params.pagination ?? {};
       const query = new URLSearchParams();
-      query.set("page", String(page - 1));
-      query.set("size", String(perPage));
+      if (resource !== "cities" && resource !== "offices"
+          && resource !== "place-types" && resource !== "wishlists") {
+        query.set("page", String(page - 1));
+        query.set("size", String(perPage));
+      }
       for (const [key, value] of Object.entries(params.filter ?? {})) {
         if (value !== undefined && value !== null && value !== "") {
           query.set(key, String(value));
@@ -86,6 +103,12 @@ export const dataProvider: DataProvider = {
           hasDetails: !!details,
         },
       } as any;
+    }
+    if (resource === "wishlists") {
+      const { json } = await httpClient(`${API_URL}/wishlists`);
+      const entry = (json as any[]).find((item) => item.id == params.id);
+      if (!entry) throw new Error("Wishlist entry not found");
+      return { data: entry };
     }
     return baseProvider.getOne(resource, params);
   },
@@ -178,6 +201,7 @@ export const dataProvider: DataProvider = {
 
   create: async (resource, params) => {
     if (resource === "hotels") {
+      const typeId = await getHotelPlaceTypeId();
       const {
         name,
         address,
@@ -197,7 +221,7 @@ export const dataProvider: DataProvider = {
           name,
           address,
           cityId,
-          placeTypeId: HOTEL_PLACE_TYPE_ID,
+          placeTypeId: typeId,
           latitude,
           longitude,
           description,
@@ -234,6 +258,14 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
+    if (resource === "wishlists") {
+      const { json } = await httpClient(`${API_URL}/wishlists`, {
+        method: "POST",
+        body: JSON.stringify({ placeId: params.data.placeId }),
+      });
+      return { data: json };
+    }
+
     if (resource === "places") {
       const {
         name,
@@ -265,6 +297,12 @@ export const dataProvider: DataProvider = {
   delete: async (resource, params) => {
     if (resource === "hotels") {
       throw new Error("Hotel deletion is not supported");
+    }
+    if (resource === "wishlists") {
+      await httpClient(`${API_URL}/wishlists/${params.id}`, {
+        method: "DELETE",
+      });
+      return { data: params.previousData ?? { id: params.id } } as any;
     }
     return baseProvider.delete(resource, params);
   },

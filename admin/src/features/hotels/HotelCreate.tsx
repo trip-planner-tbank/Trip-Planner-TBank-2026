@@ -17,8 +17,14 @@ export function HotelCreate() {
         <ReferenceInput source="cityId" reference="cities" label="City">
           <AutocompleteInput optionText="name" validate={required()} />
         </ReferenceInput>
-        <NumberInput source="latitude" validate={required()} />
-        <NumberInput source="longitude" validate={required()} />
+        <NumberInput
+          source="latitude"
+          helperText="Optional. Leave both coordinates empty to geocode the address automatically."
+        />
+        <NumberInput
+          source="longitude"
+          helperText="Optional. Latitude and longitude must be supplied together."
+        />
         <TextInput source="description" multiline fullWidth />
         <NumberInput
           source="starRating"
