@@ -54,6 +54,14 @@ class JwtServiceTest {
     }
 
     @Test
+    void generatedTokensAreUniqueEvenForSameUserAndType() {
+        String first = jwtService.generateRefreshToken(user);
+        String second = jwtService.generateRefreshToken(user);
+
+        assertThat(second).isNotEqualTo(first);
+    }
+
+    @Test
     void tamperedTokenCannotBeParsedOrValidated() {
         String token = jwtService.generateAccessToken(user);
         String tampered = token.substring(0, token.length() - 2) + "xx";

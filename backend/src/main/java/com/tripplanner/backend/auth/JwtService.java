@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +96,7 @@ public class JwtService {
             claims.put("typ", tokenType);
             claims.put("iat", now.getEpochSecond());
             claims.put("exp", now.plusSeconds(expiresInSeconds).getEpochSecond());
+            claims.put("jti", UUID.randomUUID().toString());
 
             String unsignedToken = base64UrlJson(header) + "." + base64UrlJson(claims);
             return unsignedToken + "." + sign(unsignedToken);
