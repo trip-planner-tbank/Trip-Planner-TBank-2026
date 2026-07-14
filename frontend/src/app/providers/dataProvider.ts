@@ -207,7 +207,6 @@ export const dataProvider: DataProvider = {
 
   create: async (resource, params) => {
     if (resource === "hotels") {
-      const typeId = await getHotelPlaceTypeId();
       const {
         name,
         address,
@@ -221,36 +220,34 @@ export const dataProvider: DataProvider = {
         roomCount,
       } = params.data;
 
-      const { json: placeJson } = await httpClient(`${API_URL}/places`, {
+      const { json } = await httpClient(`${API_URL}/hotels`, {
         method: "POST",
         body: JSON.stringify({
+          cityId,
           name,
           address,
-          cityId,
-          placeTypeId: typeId,
           latitude,
           longitude,
           description,
+          details: { starRating, phone, website, roomCount },
         }),
       });
 
-      const place = placeJson as Place;
-
-      const { json: detailsJson } = await httpClient(
-        `${API_URL}/places/${place.id}/hotel-details`,
-        {
-          method: "POST",
-          body: JSON.stringify({ starRating, phone, website, roomCount }),
-        },
-      );
-
+      const details = json as HotelDetails;
       return {
         data: {
-          ...place,
-          starRating: (detailsJson as HotelDetails).starRating,
-          phone: (detailsJson as HotelDetails).phone,
-          website: (detailsJson as HotelDetails).website,
-          roomCount: (detailsJson as HotelDetails).roomCount,
+          id: details.placeId,
+          placeId: details.placeId,
+          name,
+          address,
+          cityId,
+          latitude,
+          longitude,
+          description,
+          starRating: details.starRating,
+          phone: details.phone,
+          website: details.website,
+          roomCount: details.roomCount,
           hasDetails: true,
         },
       } as any;
