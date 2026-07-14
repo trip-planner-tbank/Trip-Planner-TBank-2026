@@ -207,6 +207,7 @@ export const dataProvider: DataProvider = {
 
   create: async (resource, params) => {
     if (resource === "hotels") {
+      const typeId = await getHotelPlaceTypeId();
       const {
         name,
         address,
