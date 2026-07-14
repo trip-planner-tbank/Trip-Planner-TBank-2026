@@ -5,6 +5,8 @@ import com.tripplanner.backend.dto.office.OfficeRequest;
 import com.tripplanner.backend.dto.place.PlaceWithDistanceResponse;
 import com.tripplanner.backend.service.PlaceService;
 import com.tripplanner.backend.service.OfficeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -36,34 +38,101 @@ public class OfficeController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Create office",
+            description = "Add a new office. ADMIN only.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Created"),
+                    @ApiResponse(responseCode = "400", description = "Validation error"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (not ADMIN role)"),
+                    @ApiResponse(responseCode = "404", description = "City not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Office> createOffice(@Valid @RequestBody OfficeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(officeService.create(request));
     }
 
     @GetMapping
+    @Operation(
+            summary = "Get offices",
+            description = "Get a list of offices. Optionally filter by city.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Invalid query parameters"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "City not found (if cityId is provided but does not exist)"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<List<Office>> getOffices(@RequestParam(required = false) Long cityId) {
         return ResponseEntity.ok(officeService.list(cityId));
     }
 
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Get office",
+            description = "Get a specific office by id.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Office not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Office> getOffice(@PathVariable Long id) {
         return ResponseEntity.ok(officeService.get(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Update office",
+            description = "Update a specific office. ADMIN only.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Validation error"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (not ADMIN role)"),
+                    @ApiResponse(responseCode = "404", description = "Office or city not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Office> updateOffice(@PathVariable Long id, @Valid @RequestBody OfficeRequest request) {
         return ResponseEntity.ok(officeService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Delete office",
+            description = "Delete a specific office. ADMIN only.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "No Content"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (not ADMIN role)"),
+                    @ApiResponse(responseCode = "404", description = "Office not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Void> deleteOffice(@PathVariable Long id) {
         officeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/nearby-places")
+    @Operation(
+            summary = "Get places near office",
+            description = "Get all active places near the selected office, sorted by distance (ascending).",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Invalid query parameters"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Office not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<List<PlaceWithDistanceResponse>> getNearbyPlaces(
             @PathVariable Long id,
             @RequestParam(required = false) Long placeTypeId,

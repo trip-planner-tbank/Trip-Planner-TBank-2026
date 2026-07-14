@@ -3,6 +3,9 @@ package com.tripplanner.backend.controller;
 import com.tripplanner.backend.domain.Place;
 import com.tripplanner.backend.dto.place.PlaceWithDistanceResponse;
 import com.tripplanner.backend.service.PlaceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -29,11 +32,23 @@ import org.springframework.validation.annotation.Validated;
 @RequestMapping("/places")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Place")
 public class PlaceController {
 
     private final PlaceService placeService;
 
     @GetMapping
+    @Operation(
+            summary = "Get places",
+            description = "Get a list of active places with optional filtering by city, type, and distance from a reference point.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Invalid query parameters"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "City, office, or reference place not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<List<PlaceWithDistanceResponse>> getAllPlaces(
             @RequestParam(required = false) Long cityId,
             @RequestParam(required = false) Long placeTypeId,
@@ -47,17 +62,51 @@ public class PlaceController {
     }
 
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Get place",
+            description = "Get a specific place by id.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Place not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Place> getPlace(@PathVariable Long id) {
         return ResponseEntity.ok(placeService.get(id));
     }
 
     @PostMapping
+    @Operation(
+            summary = "Create place",
+            description = "Create a new place. HOTEL type requires ADMIN role.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Created"),
+                    @ApiResponse(responseCode = "400", description = "Validation error"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (HOTEL type not allowed for non-ADMIN)"),
+                    @ApiResponse(responseCode = "404", description = "City or place type not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Place> createPlace(@Valid @RequestBody CreatePlaceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(placeService.create(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Update place",
+            description = "Update a specific place by id. ADMIN only.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Validation error"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (not ADMIN role)"),
+                    @ApiResponse(responseCode = "404", description = "Place not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Place> updatePlace(
             @PathVariable Long id,
             @Valid @RequestBody CreatePlaceRequest request) {
@@ -66,12 +115,35 @@ public class PlaceController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Delete place",
+            description = "Delete a specific place by id. ADMIN only.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "No Content"),
+                    @ApiResponse(responseCode = "400", description = "Invalid id format"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden (not ADMIN role)"),
+                    @ApiResponse(responseCode = "404", description = "Place not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
         placeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/nearby-places")
+    @Operation(
+            summary = "Get places near place",
+            description = "Get all active places near the selected place, sorted by distance (ascending). The reference place itself is excluded.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "400", description = "Invalid query parameters"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Place not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     public ResponseEntity<List<PlaceWithDistanceResponse>> getNearbyPlaces(
             @PathVariable Long id,
             @RequestParam(required = false) Long placeTypeId,
