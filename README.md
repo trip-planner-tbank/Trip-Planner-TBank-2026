@@ -96,7 +96,7 @@
 - Формула Хаверсина
 
 ### Frontend
-- React Admin
+- React + Vite
 
 ### DevOps
 - Docker
@@ -138,7 +138,7 @@ docker compose up --build
 
 После запуска:
 - Backend API: http://localhost:8080
-- React Admin: http://localhost:3000
+- Frontend: http://localhost:3000
 - PostgreSQL: localhost:5432
 
 ---
@@ -147,13 +147,8 @@ docker compose up --build
 
 ```text
 .
-├── admin/                       # React Admin frontend
+├── frontend/                    # React + Vite frontend
 │   ├── src/
-│   │   ├── app/                 # app shell, providers, theme
-│   │   ├── features/            # feature-level logic
-│   │   ├── resources/           # React Admin resources
-│   │   ├── shared/              # shared API/config helpers
-│   │   └── widgets/             # reusable UI blocks
 │   ├── Dockerfile
 │   └── nginx.conf
 ├── backend/                     # Java Spring Boot backend
