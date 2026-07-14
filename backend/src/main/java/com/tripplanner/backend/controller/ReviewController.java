@@ -37,6 +37,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.listReviews(placeId, userId, cityId, page, size));
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Get my reviews", description = "Get a list of reviews created by the current user.")
+    public ResponseEntity<Page<ReviewResponse>> getMyReviews(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return ResponseEntity.ok(reviewService.listMyReviews(page, size));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get review", description = "Get a specific review by id.")
     public ResponseEntity<ReviewResponse> getReview(@PathVariable Long id) {

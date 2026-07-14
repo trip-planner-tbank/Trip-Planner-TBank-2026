@@ -8,6 +8,9 @@ admin/dist/
 admin/node_modules/
 admin/tsconfig.tsbuildinfo
 admin/tsconfig
+frontend/dist/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
 
 # Log file
 *.log

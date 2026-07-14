@@ -18,4 +18,11 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
             where token.user = :user and token.revokedAt is null
             """)
     void revokeAllActiveByUser(@Param("user") AppUser user);
+
+    @Modifying
+    @Query("""
+            delete from RefreshToken token
+            where token.user = :user
+            """)
+    void deleteAllByUser(@Param("user") AppUser user);
 }

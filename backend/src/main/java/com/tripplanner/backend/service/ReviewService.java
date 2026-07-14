@@ -53,6 +53,13 @@ public class ReviewService {
         return mapToResponse(review);
     }
 
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> listMyReviews(int page, int size) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return reviewRepository.findByUserId(userId, pageable).map(this::mapToResponse);
+    }
+
     @Transactional
     public ReviewResponse createReview(CreateReviewRequest request) {
         Long userId = SecurityUtil.getCurrentUserId();
